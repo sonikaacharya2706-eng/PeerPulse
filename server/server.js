@@ -1,6 +1,7 @@
 import express from 'express';
 import http from 'http';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import cors from 'cors';
@@ -182,12 +183,14 @@ app.use('/api', dashboardRoutes);
 initSlaCron();
 initEventReminderCron();
 
-// In production, serve /client/dist static assets and SPA fallback
-if (process.env.NODE_ENV === 'production') {
-  const clientDist = path.join(__dirname, '../client/dist');
+// In production or whenever client/dist is built, serve React app
+const clientDist = path.join(__dirname, '../client/dist');
+const hasClientDist = fs.existsSync(clientDist);
+
+if (process.env.NODE_ENV === 'production' || hasClientDist) {
   app.use(express.static(clientDist));
 
-  // SPA fallback for all non-API routes
+  // Catch-all route that returns index.html for any GET request that does not start with /api
   app.get('*', (req, res, next) => {
     if (
       req.path.startsWith('/api') ||
@@ -197,6 +200,16 @@ if (process.env.NODE_ENV === 'production') {
       return next();
     }
     res.sendFile(path.join(clientDist, 'index.html'));
+  });
+} else {
+  // Helpful development guidance when client is not yet built
+  app.get('/', (req, res) => {
+    res.json({
+      success: true,
+      message: 'Smart Campus API is running in development mode.',
+      hint: 'Run "npm run build" to compile the React client or open http://localhost:5173 for the Vite dev server.',
+      healthCheck: '/api/health',
+    });
   });
 }
 

@@ -1,0 +1,951 @@
+{
+  "info": {
+    "_postman_id": "a98c7610-1234-4567-89ab-smartcampus001",
+    "name": "Smart Campus Solutions API Suite",
+    "description": "Comprehensive Postman collection for all 5 core modules and shared services of the Smart Campus Solutions platform.\n\nModules:\n- Authentication & User Management\n- M1. Smart Classroom Availability and Timetable Assistant\n- M2. Digital Lost-and-Found Management System\n- M3. QR-Based Classroom Attendance and Visitor Management\n- M4. Campus Maintenance and Complaint Reporting Application\n- M5. Smart College Event and Activity Notification System\n- Shared Dashboard, Search & Audit Logs",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000/api",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "sessionId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "complaintId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "eventId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "itemId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "passCode",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "1. Authentication",
+      "item": [
+        {
+          "name": "Login (Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.success && json.data && json.data.token) {",
+                  "    pm.collectionVariables.set('token', json.data.token);",
+                  "    console.log('Saved token to collection variable');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@campus.edu\",\n  \"password\": \"Campus@123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Login (Faculty)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.success && json.data && json.data.token) {",
+                  "    pm.collectionVariables.set('token', json.data.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"faculty1@campus.edu\",\n  \"password\": \"Campus@123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Login (Student 1)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.success && json.data && json.data.token) {",
+                  "    pm.collectionVariables.set('token', json.data.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"student1@campus.edu\",\n  \"password\": \"Campus@123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Register New Student",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"New Student\",\n  \"email\": \"newstudent@campus.edu\",\n  \"password\": \"Campus@123\",\n  \"role\": \"student\",\n  \"department\": \"CSE\",\n  \"year\": 1,\n  \"rollNo\": \"24CS999\",\n  \"phone\": \"+91 9999988888\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Get Profile (Me)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "me"]
+            }
+          }
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"+91 9876543210\",\n  \"clubs\": [\"Coding Club\", \"Open Source Initiative\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "profile"]
+            }
+          }
+        },
+        {
+          "name": "Forgot Password Request",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"student1@campus.edu\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/forgot-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "forgot-password"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. M1 - Smart Classroom Availability and Timetable Assistant",
+      "item": [
+        {
+          "name": "List All Classrooms",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/classrooms",
+              "host": ["{{baseUrl}}"],
+              "path": ["classrooms"]
+            }
+          }
+        },
+        {
+          "name": "Real-time Room Status Board (Algorithm A)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/classrooms/status?time=2026-11-16T09:30:00",
+              "host": ["{{baseUrl}}"],
+              "path": ["classrooms", "status"],
+              "query": [
+                { "key": "time", "value": "2026-11-16T09:30:00" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Free Room Finder (Algorithm C)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rooms/free-search?date=2026-11-16&startTime=14:00&endTime=16:00&minCapacity=50&type=lecture",
+              "host": ["{{baseUrl}}"],
+              "path": ["rooms", "free-search"],
+              "query": [
+                { "key": "date", "value": "2026-11-16" },
+                { "key": "startTime", "value": "14:00" },
+                { "key": "endTime", "value": "16:00" },
+                { "key": "minCapacity", "value": "50" },
+                { "key": "type", "value": "lecture" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "View Master Timetable",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/timetable?department=CSE&year=3",
+              "host": ["{{baseUrl}}"],
+              "path": ["timetable"],
+              "query": [
+                { "key": "department", "value": "CSE" },
+                { "key": "year", "value": "3" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "View My Schedule",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/timetable/my",
+              "host": ["{{baseUrl}}"],
+              "path": ["timetable", "my"]
+            }
+          }
+        },
+        {
+          "name": "Add Timetable Slot (Algorithm B Clash Check)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"classroom\": \"LHC-101\",\n  \"subject\": \"Distributed Systems\",\n  \"faculty\": \"faculty1@campus.edu\",\n  \"department\": \"CSE\",\n  \"year\": 3,\n  \"section\": \"A\",\n  \"dayOfWeek\": 1,\n  \"startTime\": \"09:00\",\n  \"endTime\": \"10:00\",\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/timetable",
+              "host": ["{{baseUrl}}"],
+              "path": ["timetable"]
+            }
+          }
+        },
+        {
+          "name": "Request Room Booking (Faculty)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"classroom\": \"SEM-301\",\n  \"date\": \"2026-11-20\",\n  \"startTime\": \"15:00\",\n  \"endTime\": \"17:00\",\n  \"purpose\": \"Guest Lecture on Cloud Infrastructure\",\n  \"expectedStrength\": 55\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/bookings",
+              "host": ["{{baseUrl}}"],
+              "path": ["bookings"]
+            }
+          }
+        },
+        {
+          "name": "List Room Bookings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/bookings",
+              "host": ["{{baseUrl}}"],
+              "path": ["bookings"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. M2 - Digital Lost-and-Found Management System",
+      "item": [
+        {
+          "name": "List Lost and Found Items",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/lostfound?type=lost&category=electronics&status=reported",
+              "host": ["{{baseUrl}}"],
+              "path": ["lostfound"],
+              "query": [
+                { "key": "type", "value": "lost" },
+                { "key": "category", "value": "electronics" },
+                { "key": "status", "value": "reported" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Report Lost Item",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"lost\",\n  \"title\": \"Dell XPS 15 Laptop in Grey Sleeve\",\n  \"category\": \"electronics\",\n  \"description\": \"Lost near CS Lab 1, has a Linux penguin sticker on top lid.\",\n  \"dateOccurred\": \"2026-11-14\",\n  \"location\": \"CS Lab 1\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/lostfound",
+              "host": ["{{baseUrl}}"],
+              "path": ["lostfound"]
+            }
+          }
+        },
+        {
+          "name": "Report Found Item",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"found\",\n  \"title\": \"Dell Laptop and Charger in Grey Bag\",\n  \"category\": \"electronics\",\n  \"description\": \"Found on table 4 inside CS Lab 1 with AC adapter.\",\n  \"dateOccurred\": \"2026-11-14\",\n  \"location\": \"Computer Center CS Lab 1\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/lostfound",
+              "host": ["{{baseUrl}}"],
+              "path": ["lostfound"]
+            }
+          }
+        },
+        {
+          "name": "Get Suggested Matches (Algorithm G)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/lostfound/{{itemId}}/matches",
+              "host": ["{{baseUrl}}"],
+              "path": ["lostfound", "{{itemId}}", "matches"]
+            }
+          }
+        },
+        {
+          "name": "Submit Item Claim",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"proofDescription\": \"My laptop serial number is DL-99281, login user is john.doe, wallpaper is a mountain landscape.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/lostfound/{{itemId}}/claims",
+              "host": ["{{baseUrl}}"],
+              "path": ["lostfound", "{{itemId}}", "claims"]
+            }
+          }
+        },
+        {
+          "name": "List All Claims (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/claims",
+              "host": ["{{baseUrl}}"],
+              "path": ["claims"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. M3 - QR-Based Attendance and Visitor Management",
+      "item": [
+        {
+          "name": "Start Attendance Session (Faculty)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.success && json.data && json.data._id) {",
+                  "    pm.collectionVariables.set('sessionId', json.data._id);",
+                  "    console.log('Saved sessionId:', json.data._id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subject\": \"Operating Systems\",\n  \"department\": \"CSE\",\n  \"year\": 3,\n  \"section\": \"A\",\n  \"roomNo\": \"LHC-101\",\n  \"geoRequired\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/attendance/sessions",
+              "host": ["{{baseUrl}}"],
+              "path": ["attendance", "sessions"]
+            }
+          }
+        },
+        {
+          "name": "Get Dynamic 20s QR (Algorithm D)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/attendance/sessions/{{sessionId}}/qr",
+              "host": ["{{baseUrl}}"],
+              "path": ["attendance", "sessions", "{{sessionId}}", "qr"]
+            }
+          }
+        },
+        {
+          "name": "Live Attendance Monitor (Faculty)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/attendance/sessions/{{sessionId}}/live",
+              "host": ["{{baseUrl}}"],
+              "path": ["attendance", "sessions", "{{sessionId}}", "live"]
+            }
+          }
+        },
+        {
+          "name": "Mark Attendance via QR Scan (Student)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sid\": \"{{sessionId}}\",\n  \"token\": \"REPLACE_WITH_LIVE_20S_TOKEN\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/attendance/mark",
+              "host": ["{{baseUrl}}"],
+              "path": ["attendance", "mark"]
+            }
+          }
+        },
+        {
+          "name": "My Attendance Records (Student)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/attendance/my",
+              "host": ["{{baseUrl}}"],
+              "path": ["attendance", "my"]
+            }
+          }
+        },
+        {
+          "name": "Export Attendance CSV",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/attendance/reports/export-csv?sessionId={{sessionId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["attendance", "reports", "export-csv"],
+              "query": [
+                { "key": "sessionId", "value": "{{sessionId}}" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Export Attendance PDF",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/attendance/reports/export-pdf?sessionId={{sessionId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["attendance", "reports", "export-pdf"],
+              "query": [
+                { "key": "sessionId", "value": "{{sessionId}}" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Register Campus Visitor (Security)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Sarah Jenkins\",\n  \"phone\": \"+91 9123456789\",\n  \"email\": \"sarah.j@techpartner.com\",\n  \"purpose\": \"Industry Project Evaluation\",\n  \"hostEmail\": \"faculty1@campus.edu\",\n  \"idProofType\": \"National ID\",\n  \"idProofNumber\": \"ID-987123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/visitors",
+              "host": ["{{baseUrl}}"],
+              "path": ["visitors"]
+            }
+          }
+        },
+        {
+          "name": "Scan Visitor Pass (Algorithm F FSM)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"passCode\": \"{{passCode}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/visitors/scan",
+              "host": ["{{baseUrl}}"],
+              "path": ["visitors", "scan"]
+            }
+          }
+        },
+        {
+          "name": "List Active Visitors On Campus",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/visitors/on-campus",
+              "host": ["{{baseUrl}}"],
+              "path": ["visitors", "on-campus"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. M4 - Campus Maintenance and Complaint Reporting Application",
+      "item": [
+        {
+          "name": "Raise Maintenance Complaint (Algorithm H SLA)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.success && json.data && json.data._id) {",
+                  "    pm.collectionVariables.set('complaintId', json.data._id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"electrical\",\n  \"building\": \"Lecture Hall Complex\",\n  \"room\": \"LHC-101\",\n  \"description\": \"Ceiling projector spark observed, HDMI port disconnected\",\n  \"priority\": \"critical\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/complaints",
+              "host": ["{{baseUrl}}"],
+              "path": ["complaints"]
+            }
+          }
+        },
+        {
+          "name": "List Complaints",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/complaints?priority=critical&status=submitted",
+              "host": ["{{baseUrl}}"],
+              "path": ["complaints"],
+              "query": [
+                { "key": "priority", "value": "critical" },
+                { "key": "status", "value": "submitted" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Complaint Details & Timeline",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/complaints/{{complaintId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["complaints", "{{complaintId}}"]
+            }
+          }
+        },
+        {
+          "name": "Advance Status to Assigned",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"assigned\",\n  \"assignedToEmail\": \"maintenance1@campus.edu\",\n  \"remark\": \"Assigned to electrical specialist\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/complaints/{{complaintId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["complaints", "{{complaintId}}", "status"]
+            }
+          }
+        },
+        {
+          "name": "Advance Status to In Progress",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"in_progress\",\n  \"remark\": \"Technician on site inspecting projector fuse\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/complaints/{{complaintId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["complaints", "{{complaintId}}", "status"]
+            }
+          }
+        },
+        {
+          "name": "Advance Status to Resolved",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"resolved\",\n  \"remark\": \"Fuse replaced and HDMI circuit tested successfully\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/complaints/{{complaintId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["complaints", "{{complaintId}}", "status"]
+            }
+          }
+        },
+        {
+          "name": "Submit Feedback and Close Complaint",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 5,\n  \"comment\": \"Super fast turnaround, projector working crisply for morning lecture!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/complaints/{{complaintId}}/feedback",
+              "host": ["{{baseUrl}}"],
+              "path": ["complaints", "{{complaintId}}", "feedback"]
+            }
+          }
+        },
+        {
+          "name": "Complaint Analytics Overview (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/complaints/analytics/overview",
+              "host": ["{{baseUrl}}"],
+              "path": ["complaints", "analytics", "overview"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. M5 - Smart College Event and Activity Notification System",
+      "item": [
+        {
+          "name": "List Upcoming Events",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/events?category=technical",
+              "host": ["{{baseUrl}}"],
+              "path": ["events"],
+              "query": [
+                { "key": "category", "value": "technical" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Event (Capacity 2 for Waitlist Testing)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.success && json.data && json.data._id) {",
+                  "    pm.collectionVariables.set('eventId', json.data._id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Advanced AI & Robotics Workshop\",\n  \"description\": \"Hands-on hardware lab with autonomous rover simulation.\",\n  \"category\": \"workshop\",\n  \"venue\": \"CS-LAB-2\",\n  \"startAt\": \"2026-11-25T10:00:00Z\",\n  \"endAt\": \"2026-11-25T16:00:00Z\",\n  \"capacity\": 2,\n  \"registrationDeadline\": \"2026-11-24T23:59:59Z\",\n  \"targetDepartments\": [\"CSE\", \"ECE\"],\n  \"targetYears\": [2, 3]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/events",
+              "host": ["{{baseUrl}}"],
+              "path": ["events"]
+            }
+          }
+        },
+        {
+          "name": "Register for Event (Algorithm I)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/events/{{eventId}}/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["events", "{{eventId}}", "register"]
+            }
+          }
+        },
+        {
+          "name": "Cancel Registration (Algorithm I Auto-Promote)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/events/{{eventId}}/cancel",
+              "host": ["{{baseUrl}}"],
+              "path": ["events", "{{eventId}}", "cancel"]
+            }
+          }
+        },
+        {
+          "name": "My Registered Events",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/events/user/my",
+              "host": ["{{baseUrl}}"],
+              "path": ["events", "user", "my"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Shared Operations & Administration",
+      "item": [
+        {
+          "name": "Dashboard Summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/summary",
+              "host": ["{{baseUrl}}"],
+              "path": ["dashboard", "summary"]
+            }
+          }
+        },
+        {
+          "name": "Global Multi-Module Search",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/search?q=laptop",
+              "host": ["{{baseUrl}}"],
+              "path": ["search"],
+              "query": [
+                { "key": "q", "value": "laptop" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List User Notifications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/notifications",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications"]
+            }
+          }
+        },
+        {
+          "name": "Mark All Notifications Read",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/notifications/read-all",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", "read-all"]
+            }
+          }
+        },
+        {
+          "name": "Audit Logs (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/audit-logs?page=1&limit=25",
+              "host": ["{{baseUrl}}"],
+              "path": ["audit-logs"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "25" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List All Users (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users?role=student",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"],
+              "query": [
+                { "key": "role", "value": "student" }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

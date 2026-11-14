@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import api from '../../api/axios';
 import Card from '../../components/common/Card';
@@ -46,27 +47,35 @@ const MySchedule = () => {
           </p>
         </div>
 
-        <div className="flex rounded-lg border border-slate-300 dark:border-slate-700 p-1 bg-white dark:bg-slate-800">
-          <button
-            onClick={() => setViewMode('today')}
-            className={`px-3 py-1 text-xs font-semibold rounded-md transition ${
-              viewMode === 'today'
-                ? 'bg-brand-600 text-white shadow-sm'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-            }`}
-          >
-            Today's Classes ({schedule.today.length})
-          </button>
-          <button
-            onClick={() => setViewMode('weekly')}
-            className={`px-3 py-1 text-xs font-semibold rounded-md transition ${
-              viewMode === 'weekly'
-                ? 'bg-brand-600 text-white shadow-sm'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-            }`}
-          >
-            Weekly Schedule
-          </button>
+        <div className="flex items-center gap-3">
+          <Link to="/m1/timetable">
+            <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+              <BookOpen className="h-3.5 w-3.5" /> Class Timetable Sheets
+            </Button>
+          </Link>
+
+          <div className="flex rounded-lg border border-slate-300 dark:border-slate-700 p-1 bg-white dark:bg-slate-800">
+            <button
+              onClick={() => setViewMode('today')}
+              className={`px-3 py-1 text-xs font-semibold rounded-md transition ${
+                viewMode === 'today'
+                  ? 'bg-brand-600 text-white shadow-sm'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+              }`}
+            >
+              Today's Classes ({schedule.today.length})
+            </button>
+            <button
+              onClick={() => setViewMode('weekly')}
+              className={`px-3 py-1 text-xs font-semibold rounded-md transition ${
+                viewMode === 'weekly'
+                  ? 'bg-brand-600 text-white shadow-sm'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+              }`}
+            >
+              Weekly Schedule
+            </button>
+          </div>
         </div>
       </div>
 

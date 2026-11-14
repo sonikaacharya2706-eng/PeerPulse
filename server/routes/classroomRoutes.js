@@ -13,7 +13,7 @@ import { validate } from '../middleware/validate.js';
 
 const router = express.Router();
 
-router.get('/status', getClassroomStatus);
+router.get('/status', protect, authorize('faculty', 'admin', 'maintenance'), getClassroomStatus);
 
 router
   .route('/')

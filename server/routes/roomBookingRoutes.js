@@ -12,8 +12,8 @@ import { validate } from '../middleware/validate.js';
 
 const router = express.Router();
 
-// Free room search is open or authenticated
-router.get('/free-search', searchFreeRooms);
+// Free room search is protected (security excluded)
+router.get('/free-search', protect, authorize('faculty', 'student', 'admin', 'maintenance'), searchFreeRooms);
 
 // Booking routes
 router

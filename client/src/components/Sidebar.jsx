@@ -51,19 +51,19 @@ const Sidebar = ({ isOpen, onClose }) => {
           name: 'Room Status Board',
           path: '/m1/rooms/status',
           icon: Calendar,
-          roles: ['admin', 'faculty', 'student', 'security', 'maintenance'],
+          roles: ['admin', 'faculty', 'maintenance'],
         },
         {
           name: 'Free Room Finder',
           path: '/m1/rooms/finder',
           icon: Search,
-          roles: ['admin', 'faculty', 'student', 'security', 'maintenance'],
+          roles: ['admin', 'faculty', 'student', 'maintenance'],
         },
         {
           name: 'Timetable Viewer',
           path: '/m1/timetable',
           icon: BookOpen,
-          roles: ['admin', 'faculty', 'student', 'security', 'maintenance'],
+          roles: ['admin', 'faculty', 'student'],
         },
         {
           name: 'My Schedule',
@@ -115,7 +115,7 @@ const Sidebar = ({ isOpen, onClose }) => {
           name: 'Start Class (QR Live)',
           path: '/m3/faculty/live',
           icon: QrCode,
-          roles: ['faculty', 'admin'],
+          roles: ['faculty'],
         },
         {
           name: 'Scan Attendance QR',
@@ -139,13 +139,13 @@ const Sidebar = ({ isOpen, onClose }) => {
           name: 'Visitor Pass Register',
           path: '/m3/visitors/register',
           icon: Users,
-          roles: ['security', 'faculty', 'student', 'admin'],
+          roles: ['security', 'faculty', 'student'],
         },
         {
           name: 'Visitor Pass Scanner',
           path: '/m3/visitors/scan',
           icon: CheckCircle2,
-          roles: ['security', 'admin'],
+          roles: ['security'],
         },
         {
           name: 'Visitors On Campus',
@@ -162,7 +162,7 @@ const Sidebar = ({ isOpen, onClose }) => {
           name: 'Raise Complaint',
           path: '/m4/raise',
           icon: AlertTriangle,
-          roles: ['student', 'faculty', 'admin'],
+          roles: ['student', 'faculty'],
         },
         {
           name: 'My Complaints',

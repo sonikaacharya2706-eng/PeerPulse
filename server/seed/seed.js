@@ -23,6 +23,7 @@ import Event from '../models/Event.js';
 import EventRegistration from '../models/EventRegistration.js';
 import Notification from '../models/Notification.js';
 import AuditLog from '../models/AuditLog.js';
+import TimetableImage from '../models/TimetableImage.js';
 
 import File from '../models/File.js';
 
@@ -67,6 +68,7 @@ const seedDatabase = async () => {
       Notification.deleteMany(),
       AuditLog.deleteMany(),
       File.deleteMany(),
+      TimetableImage.deleteMany(),
     ]);
 
     console.log('[Seed] Database wiped. Seeding new initial data...');
@@ -217,6 +219,94 @@ const seedDatabase = async () => {
 
     await Timetable.insertMany(timetableEntries);
     console.log('[Seed] Weekly timetable for 2 full classes seeded.');
+
+    // 3B. OFFICIAL TIMETABLE IMAGE SHEETS (Uploaded by Faculty for Students)
+    const sampleTimetableSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="900" height="520" viewBox="0 0 900 520" style="background:#0f172a;font-family:system-ui,-apple-system,sans-serif;">
+      <rect x="15" y="15" width="870" height="490" rx="14" fill="#1e293b" stroke="#0284c7" stroke-width="2"/>
+      <text x="450" y="55" fill="#38bdf8" font-size="20" font-weight="bold" text-anchor="middle">DEPARTMENT OF COMPUTER SCIENCE &amp; ENGINEERING</text>
+      <text x="450" y="80" fill="#94a3b8" font-size="13" text-anchor="middle">Official Weekly Lecture &amp; Lab Schedule - Odd Semester 2026</text>
+      <line x1="30" y1="100" x2="870" y2="100" stroke="#334155" stroke-width="1.5"/>
+      
+      <!-- Day Row Headers -->
+      <rect x="40" y="120" width="110" height="42" fill="#0284c7" rx="6"/>
+      <text x="95" y="146" fill="#fff" font-size="13" font-weight="bold" text-anchor="middle">MONDAY</text>
+      <rect x="160" y="120" width="220" height="42" fill="#334155" rx="6"/>
+      <text x="270" y="146" fill="#f1f5f9" font-size="12" text-anchor="middle">09:00 - DSA (LHC-101)</text>
+      <rect x="390" y="120" width="220" height="42" fill="#334155" rx="6"/>
+      <text x="500" y="146" fill="#f1f5f9" font-size="12" text-anchor="middle">10:00 - COA (LHC-102)</text>
+      <rect x="620" y="120" width="240" height="42" fill="#0369a1" rx="6"/>
+      <text x="740" y="146" fill="#f1f5f9" font-size="12" text-anchor="middle">14:00 - DSA Lab (CS-LAB-1)</text>
+
+      <rect x="40" y="180" width="110" height="42" fill="#0284c7" rx="6"/>
+      <text x="95" y="206" fill="#fff" font-size="13" font-weight="bold" text-anchor="middle">TUESDAY</text>
+      <rect x="160" y="180" width="220" height="42" fill="#334155" rx="6"/>
+      <text x="270" y="206" fill="#f1f5f9" font-size="12" text-anchor="middle">09:00 - Discrete Math</text>
+      <rect x="390" y="180" width="220" height="42" fill="#334155" rx="6"/>
+      <text x="500" y="206" fill="#f1f5f9" font-size="12" text-anchor="middle">11:00 - DSA Review</text>
+      <rect x="620" y="180" width="240" height="42" fill="#334155" rx="6"/>
+      <text x="740" y="206" fill="#f1f5f9" font-size="12" text-anchor="middle">14:00 - Problem Solving</text>
+
+      <rect x="40" y="240" width="110" height="42" fill="#0284c7" rx="6"/>
+      <text x="95" y="266" fill="#fff" font-size="13" font-weight="bold" text-anchor="middle">WEDNESDAY</text>
+      <rect x="160" y="240" width="220" height="42" fill="#334155" rx="6"/>
+      <text x="270" y="266" fill="#f1f5f9" font-size="12" text-anchor="middle">10:00 - Digital Logic Design</text>
+      <rect x="390" y="240" width="220" height="42" fill="#0369a1" rx="6"/>
+      <text x="500" y="266" fill="#f1f5f9" font-size="12" text-anchor="middle">11:00 - Web Technologies</text>
+      <rect x="620" y="240" width="240" height="42" fill="#334155" rx="6"/>
+      <text x="740" y="266" fill="#f1f5f9" font-size="12" text-anchor="middle">15:00 - Self Study</text>
+
+      <rect x="40" y="300" width="110" height="42" fill="#0284c7" rx="6"/>
+      <text x="95" y="326" fill="#fff" font-size="13" font-weight="bold" text-anchor="middle">THURSDAY</text>
+      <rect x="160" y="300" width="220" height="42" fill="#334155" rx="6"/>
+      <text x="270" y="326" fill="#f1f5f9" font-size="12" text-anchor="middle">09:00 - Database Systems</text>
+      <rect x="390" y="300" width="220" height="42" fill="#334155" rx="6"/>
+      <text x="500" y="326" fill="#f1f5f9" font-size="12" text-anchor="middle">10:00 - Operating Systems</text>
+      <rect x="620" y="300" width="240" height="42" fill="#0369a1" rx="6"/>
+      <text x="740" y="326" fill="#f1f5f9" font-size="12" text-anchor="middle">14:00 - OS Hands-on Lab</text>
+
+      <rect x="40" y="360" width="110" height="42" fill="#0284c7" rx="6"/>
+      <text x="95" y="386" fill="#fff" font-size="13" font-weight="bold" text-anchor="middle">FRIDAY</text>
+      <rect x="160" y="360" width="220" height="42" fill="#334155" rx="6"/>
+      <text x="270" y="386" fill="#f1f5f9" font-size="12" text-anchor="middle">09:00 - Computer Networks</text>
+      <rect x="390" y="360" width="220" height="42" fill="#334155" rx="6"/>
+      <text x="500" y="386" fill="#f1f5f9" font-size="12" text-anchor="middle">11:00 - Technical Seminar</text>
+      <rect x="620" y="360" width="240" height="42" fill="#334155" rx="6"/>
+      <text x="740" y="386" fill="#f1f5f9" font-size="12" text-anchor="middle">15:00 - Sports &amp; Clubs</text>
+
+      <text x="450" y="475" fill="#64748b" font-size="11" text-anchor="middle">Signed &amp; Approved by HOD Dr. Alan Turing &bull; Ref: CSE/2026/TT-01</text>
+    </svg>`;
+
+    const timetableFile = await File.create({
+      filename: 'cse-yr2-timetable.svg',
+      contentType: 'image/svg+xml',
+      size: Buffer.byteLength(sampleTimetableSvg),
+      data: Buffer.from(sampleTimetableSvg),
+      uploadedBy: faculty1._id,
+    });
+
+    await TimetableImage.create([
+      {
+        title: 'CSE 2nd Year Section A Master Timetable',
+        department: 'CSE',
+        year: 2,
+        section: 'A',
+        semester: 'Odd Semester 2026',
+        description: 'Official department timetable sheet approved by HOD. Effective from start of semester.',
+        imageUrl: `/api/files/${timetableFile._id}`,
+        uploadedBy: faculty1._id,
+      },
+      {
+        title: 'CSE 3rd Year Section A Master Timetable',
+        department: 'CSE',
+        year: 3,
+        section: 'A',
+        semester: 'Odd Semester 2026',
+        description: 'Includes revised elective schedules and lab batch allocations.',
+        imageUrl: `/api/files/${timetableFile._id}`,
+        uploadedBy: faculty2._id,
+      },
+    ]);
+    console.log('[Seed] Official Timetable image sheets seeded.');
 
     // 4. ROOM BOOKINGS (4 bookings in mixed states)
     const today = new Date();

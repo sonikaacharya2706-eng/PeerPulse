@@ -24,6 +24,7 @@ router
   .route('/')
   .get(getComplaints)
   .post(
+    authorize('student', 'faculty'),
     upload.array('images', 3),
     [
       body('category')

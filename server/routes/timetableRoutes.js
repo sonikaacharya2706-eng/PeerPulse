@@ -7,17 +7,44 @@ import {
   updateTimetableEntry,
   deleteTimetableEntry,
 } from '../controllers/timetableController.js';
+import {
+  uploadTimetableImage,
+  getTimetableImages,
+  deleteTimetableImage,
+} from '../controllers/timetableImageController.js';
 import { protect } from '../middleware/auth.js';
 import { authorize } from '../middleware/rbac.js';
 import { validate } from '../middleware/validate.js';
+import { upload } from '../middleware/upload.js';
 
 const router = express.Router();
+
+// Timetable Image Sheet upload & view routes
+router.post(
+  '/images',
+  protect,
+  authorize('faculty', 'admin'),
+  upload.single('image'),
+  uploadTimetableImage
+);
+router.get(
+  '/images',
+  protect,
+  authorize('faculty', 'student', 'admin'),
+  getTimetableImages
+);
+router.delete(
+  '/images/:id',
+  protect,
+  authorize('faculty', 'admin'),
+  deleteTimetableImage
+);
 
 router.get('/my', protect, getMyTimetable);
 
 router
   .route('/')
-  .get(getTimetables)
+  .get(protect, authorize('faculty', 'student', 'admin'), getTimetables)
   .post(
     protect,
     authorize('admin', 'faculty'),

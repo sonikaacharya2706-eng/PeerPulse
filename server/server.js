@@ -133,22 +133,16 @@ app.use('/api/auth/register', authLimiter);
 // Static uploads folder
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Root & health check endpoints
+// Health check endpoint (moved from '/')
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
-    timestamp: new Date().toISOString(),
-    uptime: Math.round(process.uptime()),
-    service: 'smart-campus-api',
-  });
-});
-
-app.get('/', (req, res) => {
-  res.json({
     success: true,
     message: 'Smart Campus Solutions API is running',
     version: '1.0.0',
     timestamp: new Date().toISOString(),
+    uptime: Math.round(process.uptime()),
+    service: 'smart-campus-api',
   });
 });
 

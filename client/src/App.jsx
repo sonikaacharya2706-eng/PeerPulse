@@ -98,9 +98,30 @@ function App() {
         <Route path="/search" element={<GlobalSearchPage />} />
 
         {/* M1: Smart Classroom Availability and Timetable Assistant */}
-        <Route path="/m1/rooms/status" element={<RoomStatusBoard />} />
-        <Route path="/m1/rooms/finder" element={<FreeRoomFinder />} />
-        <Route path="/m1/timetable" element={<TimetableViewer />} />
+        <Route
+          path="/m1/rooms/status"
+          element={
+            <ProtectedRoute allowedRoles={['faculty', 'admin', 'maintenance']}>
+              <RoomStatusBoard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/m1/rooms/finder"
+          element={
+            <ProtectedRoute allowedRoles={['faculty', 'student', 'admin', 'maintenance']}>
+              <FreeRoomFinder />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/m1/timetable"
+          element={
+            <ProtectedRoute allowedRoles={['faculty', 'student', 'admin']}>
+              <TimetableViewer />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/m1/my-schedule"
           element={
@@ -143,7 +164,7 @@ function App() {
         <Route
           path="/m3/faculty/live"
           element={
-            <ProtectedRoute allowedRoles={['faculty', 'admin']}>
+            <ProtectedRoute allowedRoles={['faculty']}>
               <FacultyLiveClass />
             </ProtectedRoute>
           }
@@ -172,11 +193,18 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route path="/m3/visitors/register" element={<VisitorRegister />} />
+        <Route
+          path="/m3/visitors/register"
+          element={
+            <ProtectedRoute allowedRoles={['security', 'faculty', 'student']}>
+              <VisitorRegister />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/m3/visitors/scan"
           element={
-            <ProtectedRoute allowedRoles={['security', 'admin']}>
+            <ProtectedRoute allowedRoles={['security']}>
               <VisitorScanner />
             </ProtectedRoute>
           }
@@ -184,7 +212,14 @@ function App() {
         <Route path="/m3/visitors/on-campus" element={<VisitorsOnCampus />} />
 
         {/* M4: Campus Maintenance and Complaint Reporting Application */}
-        <Route path="/m4/raise" element={<RaiseComplaint />} />
+        <Route
+          path="/m4/raise"
+          element={
+            <ProtectedRoute allowedRoles={['student', 'faculty']}>
+              <RaiseComplaint />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/m4/my-complaints"
           element={

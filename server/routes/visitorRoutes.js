@@ -19,6 +19,7 @@ router
   .route('/')
   .get(getVisitors)
   .post(
+    authorize('security', 'faculty', 'student'),
     [
       body('name').trim().notEmpty().withMessage('Visitor name is required'),
       body('phone').trim().notEmpty().withMessage('Phone number is required'),
@@ -31,7 +32,7 @@ router
 
 router.post(
   '/scan',
-  authorize('security', 'admin'),
+  authorize('security'),
   [body('passCode').trim().notEmpty().withMessage('Passcode is required'), validate],
   scanVisitorPass
 );

@@ -21,7 +21,7 @@ router.use(protect);
 // Faculty session management
 router.post(
   '/sessions',
-  authorize('faculty', 'admin'),
+  authorize('faculty'),
   [
     body('subject').trim().notEmpty().withMessage('Subject is required'),
     body('department').trim().notEmpty().withMessage('Department is required'),
@@ -33,9 +33,9 @@ router.post(
   startSession
 );
 
-router.patch('/sessions/:id/end', authorize('faculty', 'admin'), endSession);
-router.get('/sessions/:id/qr', authorize('faculty', 'admin'), getSessionQR);
-router.get('/sessions/:id/live', authorize('faculty', 'admin'), getSessionLive);
+router.patch('/sessions/:id/end', authorize('faculty'), endSession);
+router.get('/sessions/:id/qr', authorize('faculty'), getSessionQR);
+router.get('/sessions/:id/live', authorize('faculty'), getSessionLive);
 
 // Student marking
 router.post(

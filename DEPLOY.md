@@ -92,6 +92,10 @@ In this architecture, Render serves both the **Node.js/Express API + Socket.io s
 3. **Environment Variables on Render**:
    In the **Environment** tab of your Render service, add the following variables:
 
+   Alternatively, deploy from the repository root with [render.yaml](render.yaml).
+   It generates a secure `JWT_SECRET` automatically and prompts for `MONGO_URI`
+   and `CLIENT_URL` where applicable.
+
    | Key | Value | Notes |
    | :--- | :--- | :--- |
    | `NODE_ENV` | `production` | Enables Express production mode & static SPA serving |

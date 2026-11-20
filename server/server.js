@@ -39,9 +39,6 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Initialize DB connection
-connectDB();
-
 const app = express();
 const server = http.createServer(app);
 
@@ -178,12 +175,6 @@ app.use('/api/files', fileRoutes);
 // Mount Shared / Dashboard / Search routes
 app.use('/api', dashboardRoutes);
 
-// Initialize Cron Jobs (disabled during unit/integration tests)
-if (process.env.NODE_ENV !== 'test') {
-  initSlaCron();
-  initEventReminderCron();
-}
-
 // In production or whenever client/dist is built, serve React app
 const clientDist = path.join(__dirname, '../client/dist');
 const hasClientDist = fs.existsSync(clientDist);
@@ -224,6 +215,10 @@ export { app, server };
 // Start listening if run directly
 const PORT = process.env.PORT || 5000;
 if (process.env.NODE_ENV !== 'test') {
+  await connectDB();
+  initSlaCron();
+  initEventReminderCron();
+
   server.listen(PORT, () => {
     console.log(`[Smart Campus Server] Running on http://localhost:${PORT}`);
   });

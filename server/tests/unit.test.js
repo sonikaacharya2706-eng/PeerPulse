@@ -4,8 +4,28 @@ import { generateQRToken, verifyQRToken, calculateHaversineDistance } from '../s
 import { isClashing } from '../controllers/timetableController.js';
 import { calculateSlaDueAt } from '../services/slaCron.js';
 import { calculateMatchScore } from '../services/matchingService.js';
+import connectDB from '../config/db.js';
 import { app } from '../server.js';
 import User from '../models/User.js';
+
+describe('Database startup configuration', () => {
+  it('fails clearly when MONGO_URI is missing in production', async () => {
+    const originalNodeEnv = process.env.NODE_ENV;
+    const originalMongoUri = process.env.MONGO_URI;
+    process.env.NODE_ENV = 'production';
+    delete process.env.MONGO_URI;
+
+    try {
+      await expect(connectDB()).rejects.toThrow('MONGO_URI environment variable is missing');
+    } finally {
+      if (originalNodeEnv === undefined) delete process.env.NODE_ENV;
+      else process.env.NODE_ENV = originalNodeEnv;
+
+      if (originalMongoUri === undefined) delete process.env.MONGO_URI;
+      else process.env.MONGO_URI = originalMongoUri;
+    }
+  });
+});
 
 describe('CORS configuration', () => {
   it('allows requests from the same origin as the server', async () => {

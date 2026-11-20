@@ -1,13 +1,18 @@
 import mongoose from 'mongoose';
 
 const connectDB = async () => {
-  try {
-    const conn = await mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/smart_campus');
-    console.log(`[MongoDB] Connected: ${conn.connection.host}`);
-  } catch (error) {
-    console.error(`[MongoDB Connection Error]: ${error.message}`);
-    // Do not crash immediately so dev environment can still diagnose
+  const uri = process.env.MONGO_URI || (
+    process.env.NODE_ENV === 'production'
+      ? null
+      : 'mongodb://127.0.0.1:27017/smart_campus'
+  );
+
+  if (!uri) {
+    throw new Error('FATAL: MONGO_URI environment variable is missing.');
   }
+
+  const conn = await mongoose.connect(uri);
+  console.log(`[MongoDB] Connected: ${conn.connection.host}`);
 };
 
 export default connectDB;

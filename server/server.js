@@ -58,13 +58,14 @@ app.use(
   })
 );
 
-// CORS configuration - strictly restricted to CLIENT_URL
+// CORS allows the deployed app's own origin and the configured client origin.
 const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
-app.use(
+app.use((req, res, next) => {
+  const requestOrigin = `${req.protocol}://${req.get('host')}`;
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (e.g. mobile apps, curl, server-to-server) or matching CLIENT_URL
-      if (!origin || origin === clientUrl) {
+      // Allow requests without an Origin header, same-origin requests, and CLIENT_URL.
+      if (!origin || origin === requestOrigin || origin === clientUrl) {
         callback(null, true);
       } else {
         callback(new Error(`CORS error: Origin ${origin} not allowed by CORS policy.`));
@@ -73,8 +74,8 @@ app.use(
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
-  })
-);
+  })(req, res, next);
+});
 
 // Logging
 if (process.env.NODE_ENV !== 'test') {

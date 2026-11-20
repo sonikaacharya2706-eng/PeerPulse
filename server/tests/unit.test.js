@@ -7,6 +7,28 @@ import { calculateMatchScore } from '../services/matchingService.js';
 import { app } from '../server.js';
 import User from '../models/User.js';
 
+describe('CORS configuration', () => {
+  it('allows requests from the same origin as the server', async () => {
+    const response = await request(app)
+      .get('/api/health')
+      .set('Host', 'peerpulse.test')
+      .set('Origin', 'http://peerpulse.test');
+
+    expect(response.status).toBe(200);
+    expect(response.headers['access-control-allow-origin']).toBe('http://peerpulse.test');
+  });
+
+  it('continues to reject unconfigured cross-origin requests', async () => {
+    const response = await request(app)
+      .get('/api/health')
+      .set('Host', 'peerpulse.test')
+      .set('Origin', 'https://untrusted.example');
+
+    expect(response.status).toBe(500);
+    expect(response.body.message).toContain('not allowed by CORS policy');
+  });
+});
+
 describe('Algorithm D: Dynamic QR Attendance Token Verification', () => {
   const secret = 'test_qr_secret_key_123';
   const sessionId = 'session_mock_id_456';

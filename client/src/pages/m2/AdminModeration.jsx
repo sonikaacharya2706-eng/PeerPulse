@@ -8,10 +8,18 @@ import LoadingSpinner from '../../components/common/LoadingSpinner';
 import EmptyState from '../../components/common/EmptyState';
 import { ShieldCheck, Check, X, FileText, CheckCircle2 } from 'lucide-react';
 import { format } from 'date-fns';
+import { useAuthStore } from '../../store/authStore';
 
 const AdminModeration = () => {
+  const token = useAuthStore((state) => state.token);
   const [claims, setClaims] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const getImageUrl = (url) => {
+    if (!url) return '';
+    const hasQuery = url.includes('?');
+    return `${apiBase}${url}${token ? (hasQuery ? `&token=${token}` : `?token=${token}`) : ''}`;
+  };
 
   // Decision Modal
   const [selectedClaim, setSelectedClaim] = useState(null);
@@ -130,12 +138,12 @@ const AdminModeration = () => {
                           {claim.proofImages.map((img, i) => (
                             <a
                               key={i}
-                              href={`${apiBase}${img}`}
+                              href={getImageUrl(img)}
                               target="_blank"
                               rel="noreferrer"
                               className="h-7 w-7 rounded overflow-hidden border border-slate-300 dark:border-slate-700 block"
                             >
-                              <img src={`${apiBase}${img}`} alt="proof" className="h-full w-full object-cover" />
+                              <img src={getImageUrl(img)} alt="proof" className="h-full w-full object-cover" />
                             </a>
                           ))}
                         </div>

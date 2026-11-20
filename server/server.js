@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import http from 'http';
 import path from 'path';
@@ -57,19 +58,16 @@ app.use(
   })
 );
 
-// CORS configuration
-const allowedOrigins = [
-  process.env.CLIENT_URL || 'http://localhost:5173',
-  'http://127.0.0.1:5173',
-  'http://localhost:3000',
-];
+// CORS configuration - strictly restricted to CLIENT_URL
+const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
+      // Allow requests with no origin (e.g. mobile apps, curl, server-to-server) or matching CLIENT_URL
+      if (!origin || origin === clientUrl) {
         callback(null, true);
       } else {
-        callback(null, true); // Permissive for local network testing if needed
+        callback(new Error(`CORS error: Origin ${origin} not allowed by CORS policy.`));
       }
     },
     credentials: true,
@@ -179,9 +177,11 @@ app.use('/api/files', fileRoutes);
 // Mount Shared / Dashboard / Search routes
 app.use('/api', dashboardRoutes);
 
-// Initialize Cron Jobs
-initSlaCron();
-initEventReminderCron();
+// Initialize Cron Jobs (disabled during unit/integration tests)
+if (process.env.NODE_ENV !== 'test') {
+  initSlaCron();
+  initEventReminderCron();
+}
 
 // In production or whenever client/dist is built, serve React app
 const clientDist = path.join(__dirname, '../client/dist');

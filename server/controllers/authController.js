@@ -9,7 +9,7 @@ import { logAudit } from '../middleware/audit.js';
 // @access  Public
 export const register = async (req, res, next) => {
   try {
-    const { name, email, password, role, department, year, rollNo, phone, clubs } = req.body;
+    const { name, email, password, department, year, rollNo, phone, clubs } = req.body;
 
     const existingUser = await User.findOne({ email: email.toLowerCase() });
     if (existingUser) {
@@ -29,8 +29,8 @@ export const register = async (req, res, next) => {
       }
     }
 
-    // Default public registration role can be student if not specified, or allow chosen role
-    const assignedRole = role || 'student';
+    // Public self-registration ALWAYS creates a student (prevent privilege escalation)
+    const assignedRole = 'student';
 
     const user = await User.create({
       name,
@@ -152,12 +152,19 @@ export const getMe = async (req, res, next) => {
 export const updateProfile = async (req, res, next) => {
   try {
     const updates = {};
+    // Explicitly restrict to safe fields only; role and security credentials cannot be changed here
     const allowed = ['name', 'phone', 'department', 'year', 'clubs', 'avatar'];
     allowed.forEach((field) => {
       if (req.body[field] !== undefined) {
         updates[field] = req.body[field];
       }
     });
+
+    // Enforce that role, email, password, and isActive can never be updated via self-profile
+    delete updates.role;
+    delete updates.email;
+    delete updates.password;
+    delete updates.isActive;
 
     const user = await User.findByIdAndUpdate(req.user._id, updates, {
       new: true,

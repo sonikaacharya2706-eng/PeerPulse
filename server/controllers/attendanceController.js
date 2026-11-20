@@ -172,13 +172,36 @@ export const getSessionLive = async (req, res, next) => {
 // Algorithm D: Dynamic QR Verification & Haversine Geofence
 export const markAttendance = async (req, res, next) => {
   try {
-    const { sid, token, lat, lng } = req.body;
+    const { sid, token, lat, lng, accuracy, deviceId } = req.body;
     const student = req.user;
 
     if (!sid || !token) {
       return res.status(400).json({
         success: false,
         message: 'Session ID (sid) and token are required',
+      });
+    }
+
+    if (!deviceId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Device ID is required to mark attendance',
+      });
+    }
+
+    // Reject students with empty department or year
+    if (!student.department || !student.year) {
+      return res.status(403).json({
+        success: false,
+        message: 'Profile incomplete: Department and Year are mandatory to mark attendance',
+      });
+    }
+
+    // Reject GPS accuracy worse than 100 meters
+    if (accuracy !== undefined && accuracy !== null && Number(accuracy) > 100) {
+      return res.status(400).json({
+        success: false,
+        message: `GPS accuracy too low (${Math.round(accuracy)}m). Accuracy must be 100m or better to prevent location spoofing.`,
       });
     }
 
@@ -213,14 +236,14 @@ export const markAttendance = async (req, res, next) => {
     }
 
     // 3. Check enrollment: student must belong to session's department & year
-    if (student.department && session.department && student.department.toUpperCase() !== session.department.toUpperCase()) {
+    if (session.department && student.department.toUpperCase() !== session.department.toUpperCase()) {
       return res.status(403).json({
         success: false,
         message: `Department mismatch: This class is for ${session.department}, but your profile is ${student.department}`,
       });
     }
 
-    if (student.year && session.year && student.year !== session.year) {
+    if (session.year && student.year !== session.year) {
       return res.status(403).json({
         success: false,
         message: `Year mismatch: This class is for Year ${session.year}, but your profile is Year ${student.year}`,
@@ -261,6 +284,18 @@ export const markAttendance = async (req, res, next) => {
       });
     }
 
+    // Anti-proxy check: reject if this device has already marked attendance for this session
+    const existingDeviceRecord = await AttendanceRecord.findOne({
+      session: session._id,
+      deviceId,
+    });
+    if (existingDeviceRecord) {
+      return res.status(409).json({
+        success: false,
+        message: 'Attendance has already been marked from this device for this session (proxy prevention)',
+      });
+    }
+
     const record = await AttendanceRecord.create({
       session: session._id,
       student: student._id,
@@ -268,6 +303,7 @@ export const markAttendance = async (req, res, next) => {
       method: 'qr',
       status: 'present',
       geo: { lat: lat || null, lng: lng || null },
+      deviceId,
     });
 
     const populatedRecord = await AttendanceRecord.findById(record._id).populate(

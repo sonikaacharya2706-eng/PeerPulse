@@ -348,7 +348,7 @@ export const createClaim = async (req, res, next) => {
       });
     }
 
-    const proofImages = await saveFilesToDB(req.files, req.user._id);
+    const proofImages = await saveFilesToDB(req.files, req.user._id, 'claim');
 
     const claim = await Claim.create({
       item: item._id,

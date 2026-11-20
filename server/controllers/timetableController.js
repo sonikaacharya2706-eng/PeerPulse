@@ -5,8 +5,8 @@ import { logAudit } from '../middleware/audit.js';
 import { getIO } from '../services/socket.js';
 import { timeToMinutes } from './classroomController.js';
 
-// Helper: check clash between two time intervals
-const isClashing = (startA, endA, startB, endB) => {
+// Helper: check clash between two time intervals (exported for unit tests & internal controllers)
+export const isClashing = (startA, endA, startB, endB) => {
   const sA = timeToMinutes(startA);
   const eA = timeToMinutes(endA);
   const sB = timeToMinutes(startB);

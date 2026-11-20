@@ -30,6 +30,11 @@ const attendanceRecordSchema = new mongoose.Schema(
       lat: { type: Number, default: null },
       lng: { type: Number, default: null },
     },
+    deviceId: {
+      type: String,
+      default: null,
+      trim: true,
+    },
   },
   {
     timestamps: true,
@@ -38,6 +43,9 @@ const attendanceRecordSchema = new mongoose.Schema(
 
 // UNIQUE compound index (session, student)
 attendanceRecordSchema.index({ session: 1, student: 1 }, { unique: true });
+
+// UNIQUE compound index (session, deviceId) - prevents proxy marking from one physical device
+attendanceRecordSchema.index({ session: 1, deviceId: 1 }, { unique: true, sparse: true });
 
 const AttendanceRecord = mongoose.model('AttendanceRecord', attendanceRecordSchema);
 export default AttendanceRecord;

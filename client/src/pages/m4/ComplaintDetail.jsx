@@ -24,9 +24,16 @@ const ComplaintDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
+  const token = useAuthStore((state) => state.token);
 
   const [complaint, setComplaint] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const getImageUrl = (url) => {
+    if (!url) return '';
+    const hasQuery = url.includes('?');
+    return `${apiBase}${url}${token ? (hasQuery ? `&token=${token}` : `?token=${token}`) : ''}`;
+  };
 
   // Feedback Modal
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
@@ -148,12 +155,12 @@ const ComplaintDetail = () => {
                 {complaint.images.map((img, i) => (
                   <a
                     key={i}
-                    href={`${apiBase}${img}`}
+                    href={getImageUrl(img)}
                     target="_blank"
                     rel="noreferrer"
                     className="h-20 w-20 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700"
                   >
-                    <img src={`${apiBase}${img}`} alt="damage" className="h-full w-full object-cover" />
+                    <img src={getImageUrl(img)} alt="damage" className="h-full w-full object-cover" />
                   </a>
                 ))}
               </div>
@@ -235,12 +242,12 @@ const ComplaintDetail = () => {
                     {step.images.map((img, i) => (
                       <a
                         key={i}
-                        href={`${apiBase}${img}`}
+                        href={getImageUrl(img)}
                         target="_blank"
                         rel="noreferrer"
                         className="h-14 w-14 rounded overflow-hidden border border-slate-300 dark:border-slate-700"
                       >
-                        <img src={`${apiBase}${img}`} alt="step-proof" className="h-full w-full object-cover" />
+                        <img src={getImageUrl(img)} alt="step-proof" className="h-full w-full object-cover" />
                       </a>
                     ))}
                   </div>

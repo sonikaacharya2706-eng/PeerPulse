@@ -1,5 +1,6 @@
 import multer from 'multer';
 import path from 'path';
+import crypto from 'crypto';
 import File from '../models/File.js';
 
 // Use memory storage so files are held in buffer and saved directly to MongoDB
@@ -24,12 +25,29 @@ export const upload = multer({
 });
 
 /**
+ * Generate an HMAC-SHA256 signed URL for a file
+ * @param {string|ObjectId} fileId
+ * @param {number} expiresInSeconds (default 7 days)
+ * @returns {string} - '/api/files/:id?exp=:exp&sig=:sig'
+ */
+export const generateSignedFileUrl = (fileId, expiresInSeconds = 7 * 24 * 3600) => {
+  const exp = Math.floor(Date.now() / 1000) + expiresInSeconds;
+  const secret = process.env.JWT_SECRET;
+  const sig = crypto
+    .createHmac('sha256', secret)
+    .update(`${fileId}:${exp}`)
+    .digest('hex');
+  return `/api/files/${fileId}?exp=${exp}&sig=${sig}`;
+};
+
+/**
  * Persist a single multer file buffer to MongoDB
  * @param {Object} file - req.file from multer memoryStorage
  * @param {string|ObjectId} userId - optional user reference
- * @returns {Promise<string>} - '/api/files/:id' endpoint URL
+ * @param {string} fileType - categorization ('general', 'complaint', 'claim', etc.)
+ * @returns {Promise<string>} - signed '/api/files/:id?exp=...&sig=...' endpoint URL
  */
-export const saveFileToDB = async (file, userId = null) => {
+export const saveFileToDB = async (file, userId = null, fileType = 'general') => {
   if (!file || !file.buffer) return '';
   const fileDoc = await File.create({
     filename: file.originalname || `upload-${Date.now()}.jpg`,
@@ -37,21 +55,23 @@ export const saveFileToDB = async (file, userId = null) => {
     size: file.size || file.buffer.length,
     data: file.buffer,
     uploadedBy: userId,
+    fileType,
   });
-  return `/api/files/${fileDoc._id}`;
+  return generateSignedFileUrl(fileDoc._id);
 };
 
 /**
  * Persist an array of multer file buffers to MongoDB
  * @param {Array} files - req.files from multer memoryStorage
  * @param {string|ObjectId} userId - optional user reference
- * @returns {Promise<string[]>} - array of '/api/files/:id' endpoint URLs
+ * @param {string} fileType - categorization ('general', 'complaint', 'claim', etc.)
+ * @returns {Promise<string[]>} - array of signed '/api/files/:id?exp=...&sig=...' endpoint URLs
  */
-export const saveFilesToDB = async (files = [], userId = null) => {
+export const saveFilesToDB = async (files = [], userId = null, fileType = 'general') => {
   if (!files || !files.length) return [];
   const urls = [];
   for (const f of files) {
-    const url = await saveFileToDB(f, userId);
+    const url = await saveFileToDB(f, userId, fileType);
     if (url) urls.push(url);
   }
   return urls;

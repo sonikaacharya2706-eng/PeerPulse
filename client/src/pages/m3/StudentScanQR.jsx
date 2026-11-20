@@ -59,17 +59,29 @@ const StudentScanQR = () => {
     setMarking(true);
     setErrorBanner(null);
 
+    // Get or initialize persistent hardware/browser deviceId
+    let deviceId = localStorage.getItem('smartcampus_device_id');
+    if (!deviceId) {
+      deviceId = 'dev_' + Math.random().toString(36).substring(2, 10) + '_' + Date.now().toString(36);
+      localStorage.setItem('smartcampus_device_id', deviceId);
+    }
+
     // Acquire geolocation if supported
     let lat = null;
     let lng = null;
+    let accuracy = null;
 
     if (navigator.geolocation) {
       try {
         const pos = await new Promise((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 4000 });
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+            timeout: 5000,
+          });
         });
         lat = pos.coords.latitude;
         lng = pos.coords.longitude;
+        accuracy = pos.coords.accuracy;
       } catch (geoErr) {
         // Continue even if GPS permission is denied or timed out
       }
@@ -81,6 +93,8 @@ const StudentScanQR = () => {
         token,
         lat,
         lng,
+        accuracy,
+        deviceId,
       });
 
       setScannedResult(res.data);

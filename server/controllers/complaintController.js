@@ -35,7 +35,7 @@ export const createComplaint = async (req, res, next) => {
     const { category, building, room, description, priority = 'medium' } = req.body;
 
     const ticketId = await generateTicketId();
-    const images = await saveFilesToDB(req.files, req.user._id);
+    const images = await saveFilesToDB(req.files, req.user._id, 'complaint');
     const slaDueAt = calculateSlaDueAt(priority);
 
     const initialTimeline = [
@@ -261,7 +261,7 @@ export const assignComplaint = async (req, res, next) => {
 export const updateComplaintStatus = async (req, res, next) => {
   try {
     const { status, remark } = req.body;
-    const afterImages = await saveFilesToDB(req.files, req.user._id);
+    const afterImages = await saveFilesToDB(req.files, req.user._id, 'complaint');
 
     const complaint = await Complaint.findById(req.params.id);
     if (!complaint) {

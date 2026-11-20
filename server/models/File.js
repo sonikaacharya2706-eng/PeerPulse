@@ -25,6 +25,11 @@ const fileSchema = new mongoose.Schema(
       ref: 'User',
       default: null,
     },
+    fileType: {
+      type: String,
+      enum: ['general', 'complaint', 'claim', 'event', 'lostfound', 'timetable'],
+      default: 'general',
+    },
   },
   {
     timestamps: true,

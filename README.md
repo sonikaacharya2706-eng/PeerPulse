@@ -103,7 +103,7 @@ All seeded accounts share the common password: **`Campus@123`**
 | **Maintenance** | `maintenance@campus.edu` | `Campus@123` | Assigned demo work order, task board, advancing ticket status (`assigned` $\rightarrow$ `in_progress` $\rightarrow$ `resolved`), uploading completion remarks |
 | **Maintenance 1** | `maintenance1@campus.edu` | `Campus@123` | Assigned electrical maintenance technician workflow |
 
-The seeded demo data gives each role dashboard sample details: admin campus metrics and pending queues; faculty schedule, room requests, and events; student timetable, complaints, and registrations; security visitor activity and found items; and maintenance assigned work orders. When there are no classes today, faculty and student dashboards show the next scheduled classes instead.
+The seeded demo data gives each role dashboard sample details: admin campus metrics, pending queues, audit logs, and ownership claims; faculty schedule, room requests, events, and attendance reports; student timetable, complaints, attendance, and event registrations; security visitor activity and found items; and maintenance assigned work orders. Attendance fixtures cover ISE Years 2 and 3, including 100%, 66%, and 33% examples. When there are no classes today, faculty and student dashboards show the next scheduled classes instead.
 
 > [!TIP]
 > The login screen at [http://localhost:5173/login](http://localhost:5173/login) includes **1-click quick-fill buttons** for each role to facilitate rapid testing and evaluation.

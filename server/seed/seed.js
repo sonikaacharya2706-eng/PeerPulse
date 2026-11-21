@@ -45,7 +45,7 @@ const seedDatabase = async () => {
 
     if (existingAdmin && !isForce) {
       console.log('[Seed] Database is already initialized (admin@campus.edu exists). Skipping seed to preserve production data.');
-      console.log('[Seed] To force re-seeding, run: npm run seed -- --force');
+      console.log('[Seed] To refresh demo data, run npm run seed -- --force only against a demo database; this clears existing collections.');
       process.exit(0);
     }
 
@@ -486,60 +486,87 @@ const seedDatabase = async () => {
     const seededLf = await LostFoundItem.insertMany(lfItems);
     console.log('[Seed] 10 Lost/Found items seeded (with 2 intentionally matching pairs).');
 
-    // 6. PAST ATTENDANCE SESSIONS & RECORDS (with 1 student having < 75% attendance)
-    // Create 3 past sessions for ISE Year 2 Sec A
+    const seededClaims = await Claim.create([
+      {
+        item: seededLf[1]._id,
+        claimant: students[0]._id,
+        proofDescription: 'The phone has my distinctive clear case and a small scratch beside the rear camera.',
+        status: 'pending',
+      },
+      {
+        item: seededLf[5]._id,
+        claimant: students[3]._id,
+        proofDescription: 'The name and student details on the identity card match my campus profile.',
+        status: 'approved',
+        verifiedBy: admin._id,
+        remark: 'Student identity verified; item returned at the security desk.',
+      },
+      {
+        item: seededLf[7]._id,
+        claimant: students[4]._id,
+        proofDescription: 'I believe this key belongs to me, but I cannot identify the attached keychain.',
+        status: 'rejected',
+        verifiedBy: admin._id,
+        remark: 'Claimant could not provide identifying details for the key.',
+      },
+    ]);
+    console.log('[Seed] 3 ownership claims seeded across pending, approved, and rejected states.');
+
+    // 6. PAST ATTENDANCE SESSIONS & RECORDS for both ISE demo cohorts
     const pastSessions = [];
-    for (let sIdx = 1; sIdx <= 3; sIdx++) {
-      const sessDate = new Date(Date.now() - sIdx * 24 * 60 * 60 * 1000);
-      const session = await AttendanceSession.create({
-        faculty: faculty1._id,
-        subject: 'Data Structures & Algorithms',
-        department: 'ISE',
+    const attendanceCohorts = [
+      {
         year: 2,
-        section: 'A',
+        subject: 'Data Structures & Algorithms',
         classroom: classrooms[0]._id,
-        startedAt: sessDate,
-        endsAt: new Date(sessDate.getTime() + 50 * 60 * 1000),
-        isActive: false,
-        qrSecret: 'seed_qr_secret_past_session_' + sIdx,
-      });
-      pastSessions.push(session);
+        students: [
+          { student: students[1], attendedSessions: [1, 2] },
+          { student: students[3], attendedSessions: [1, 2, 3] },
+        ],
+      },
+      {
+        year: 3,
+        subject: 'Operating Systems',
+        classroom: classrooms[2]._id,
+        students: [
+          { student: students[0], attendedSessions: [1, 2, 3] },
+          { student: students[2], attendedSessions: [1] },
+        ],
+      },
+    ];
 
-      // Student 1 (index 0) attends all 3 -> 100%
-      await AttendanceRecord.create({
-        session: session._id,
-        student: students[0]._id,
-        deviceId: `seed-device-${students[0]._id}`,
-        status: 'present',
-        method: 'qr',
-        markedAt: new Date(sessDate.getTime() + 5 * 60 * 1000),
-      });
-
-      // Student 2 (index 1) attends 2 out of 3 -> 66% (< 75% warning flag for Algorithm E!)
-      if (sIdx <= 2) {
-        await AttendanceRecord.create({
-          session: session._id,
-          student: students[1]._id,
-          deviceId: `seed-device-${students[1]._id}`,
-          status: 'present',
-          method: 'qr',
-          markedAt: new Date(sessDate.getTime() + 6 * 60 * 1000),
+    for (const cohort of attendanceCohorts) {
+      for (let sIdx = 1; sIdx <= 3; sIdx++) {
+        const sessDate = new Date(Date.now() - sIdx * 24 * 60 * 60 * 1000);
+        const session = await AttendanceSession.create({
+          faculty: faculty1._id,
+          subject: cohort.subject,
+          department: 'ISE',
+          year: cohort.year,
+          section: 'A',
+          classroom: cohort.classroom,
+          startedAt: sessDate,
+          endsAt: new Date(sessDate.getTime() + 50 * 60 * 1000),
+          isActive: false,
+          qrSecret: `seed_qr_secret_year_${cohort.year}_session_${sIdx}`,
         });
-      }
+        pastSessions.push(session);
 
-      // Student 3 (index 2) attends only 1 out of 3 -> 33% (< 75% warning flag)
-      if (sIdx === 1) {
-        await AttendanceRecord.create({
-          session: session._id,
-          student: students[2]._id,
-          deviceId: `seed-device-${students[2]._id}`,
-          status: 'present',
-          method: 'qr',
-          markedAt: new Date(sessDate.getTime() + 7 * 60 * 1000),
-        });
+        for (const studentRecord of cohort.students) {
+          if (!studentRecord.attendedSessions.includes(sIdx)) continue;
+
+          await AttendanceRecord.create({
+            session: session._id,
+            student: studentRecord.student._id,
+            deviceId: `seed-device-${studentRecord.student._id}`,
+            status: 'present',
+            method: 'qr',
+            markedAt: new Date(sessDate.getTime() + 5 * 60 * 1000),
+          });
+        }
       }
     }
-    console.log('[Seed] 3 Past Attendance sessions seeded (Student 2 and 3 have < 75% attendance).');
+    console.log('[Seed] 6 past attendance sessions seeded for ISE Years 2 and 3.');
 
     // 7. VISITORS (6 visitors in different states: expected, checked_in, checked_out)
     await Visitor.create([
@@ -859,7 +886,7 @@ const seedDatabase = async () => {
       },
     ];
 
-    await Complaint.insertMany(complaintDefs);
+    const seededComplaints = await Complaint.insertMany(complaintDefs);
     console.log('[Seed] 13 Complaints seeded across statuses (with CMP-2026-0001 auto-escalated for SLA breach).');
 
     // 9. EVENTS (8 events: past, upcoming, and ONE FULL EVENT WITH WAITLIST for testing Algorithm I)
@@ -1036,6 +1063,34 @@ const seedDatabase = async () => {
     await Notification.insertMany(sampleNotifications);
     console.log('[Seed] Sample notifications seeded.');
 
+    await AuditLog.insertMany([
+      {
+        actor: faculty1._id,
+        action: 'ATTENDANCE_SESSION_CREATED',
+        entity: 'AttendanceSession',
+        entityId: pastSessions[0]._id,
+        meta: { subject: pastSessions[0].subject, department: pastSessions[0].department },
+        ip: '127.0.0.1',
+      },
+      {
+        actor: admin._id,
+        action: 'CLAIM_APPROVED',
+        entity: 'Claim',
+        entityId: seededClaims[1]._id,
+        meta: { item: seededLf[5].title, claimant: 'Emma Watson' },
+        ip: '127.0.0.1',
+      },
+      {
+        actor: admin._id,
+        action: 'COMPLAINT_ASSIGNED',
+        entity: 'Complaint',
+        entityId: seededComplaints.find((complaint) => complaint.ticketId === 'CMP-2026-0013')._id,
+        meta: { ticketId: 'CMP-2026-0013', assignedTo: 'Campus Maintenance Desk' },
+        ip: '127.0.0.1',
+      },
+    ]);
+    console.log('[Seed] Sample audit log entries seeded.');
+
     // Print all demo credentials clearly
     console.log('\n============================================================');
     console.log('🎉 SMART CAMPUS SOLUTIONS: DATABASE SEEDING COMPLETED!');
@@ -1045,7 +1100,7 @@ const seedDatabase = async () => {
     console.log('  [ADMIN]       : admin@campus.edu');
     console.log('  [FACULTY 1]   : faculty1@campus.edu  (Dept: ISE)');
     console.log('  [FACULTY 2]   : faculty2@campus.edu  (Dept: ISE)');
-    console.log('  [STUDENT 1]   : student1@campus.edu  (ISE Yr 2, 100% Attendance, Confirmed in Cap 2 Event)');
+    console.log('  [STUDENT 1]   : student1@campus.edu  (ISE Yr 3, 100% Attendance, Confirmed in Cap 2 Event)');
     console.log('  [STUDENT 2]   : student2@campus.edu  (ISE Yr 2, 66% Attendance < 75% Flag)');
     console.log('  [STUDENT 3]   : student3@campus.edu  (ISE Yr 3, Waitlisted in Cap 2 Event)');
     console.log('  [STUDENT 4-10]: student4@campus.edu ... student10@campus.edu');

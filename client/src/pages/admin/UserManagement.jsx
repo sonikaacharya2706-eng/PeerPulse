@@ -377,7 +377,7 @@ const UserManagement = () => {
                   type="text"
                   value={newUser.rollNo}
                   onChange={(e) => setNewUser({ ...newUser, rollNo: e.target.value })}
-                  placeholder="e.g. 22IS010"
+                  placeholder="e.g. 22CS010"
                   className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500"
                 />
               </div>

@@ -115,7 +115,7 @@ const seedDatabase = async () => {
     for (let i = 1; i <= 10; i++) {
       const dept = i <= 6 ? 'ISE' : 'ECE';
       const year = i % 2 === 0 ? 2 : 3;
-      const rollNo = `${dept === 'ISE' ? '22IS' : '22EC'}${String(i).padStart(3, '0')}`;
+      const rollNo = `${dept === 'ISE' ? '22CS' : '22EC'}${String(i).padStart(3, '0')}`;
 
       const st = await User.create({
         name: studentNames[i - 1],
@@ -417,14 +417,14 @@ const seedDatabase = async () => {
       // Other varied items
       {
         type: 'lost',
-        title: 'Student ID Card - 22IS004',
+        title: 'Student ID Card - 22CS004',
         category: 'id_cards',
         description: 'Lost student identity smart card with lanyard.',
         dateOccurred: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
         location: 'Main Campus Cafeteria',
         reportedBy: students[3]._id,
         status: 'reported',
-        keywords: extractKeywords('Student ID Card 22IS004 identity smart card lanyard Cafeteria'),
+        keywords: extractKeywords('Student ID Card 22CS004 identity smart card lanyard Cafeteria'),
       },
       {
         type: 'found',

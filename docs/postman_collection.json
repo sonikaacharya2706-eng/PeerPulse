@@ -166,7 +166,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"New Student\",\n  \"email\": \"newstudent@campus.edu\",\n  \"password\": \"Campus@123\",\n  \"role\": \"student\",\n  \"department\": \"ISE\",\n  \"year\": 1,\n  \"rollNo\": \"24IS999\",\n  \"phone\": \"+91 9999988888\"\n}"
+              "raw": "{\n  \"name\": \"New Student\",\n  \"email\": \"newstudent@campus.edu\",\n  \"password\": \"Campus@123\",\n  \"role\": \"student\",\n  \"department\": \"ISE\",\n  \"year\": 1,\n  \"rollNo\": \"24CS999\",\n  \"phone\": \"+91 9999988888\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/auth/register",

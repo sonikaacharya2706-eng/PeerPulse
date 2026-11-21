@@ -194,8 +194,30 @@ const LandingPage = () => {
                     Ready-to-Test Demo Roles
                   </h3>
                   <p className="text-xs text-slate-600 dark:text-slate-400 mt-2 leading-relaxed">
-                    Seed script auto-creates Admin, Faculty (CSE), Students (CSE/ECE), Security Gate personnel, and Maintenance staff.
+                    Use these seeded accounts to explore each role:
                   </p>
+                  <dl className="mt-3 space-y-1.5 text-xs">
+                    <div className="flex justify-between gap-2">
+                      <dt className="font-semibold text-slate-700 dark:text-slate-300">Admin</dt>
+                      <dd className="font-mono text-slate-600 dark:text-slate-400">admin@campus.edu</dd>
+                    </div>
+                    <div className="flex justify-between gap-2">
+                      <dt className="font-semibold text-slate-700 dark:text-slate-300">Faculty</dt>
+                      <dd className="font-mono text-slate-600 dark:text-slate-400">faculty1@campus.edu</dd>
+                    </div>
+                    <div className="flex justify-between gap-2">
+                      <dt className="font-semibold text-slate-700 dark:text-slate-300">Student</dt>
+                      <dd className="font-mono text-slate-600 dark:text-slate-400">student1@campus.edu</dd>
+                    </div>
+                    <div className="flex justify-between gap-2">
+                      <dt className="font-semibold text-slate-700 dark:text-slate-300">Security</dt>
+                      <dd className="font-mono text-slate-600 dark:text-slate-400">security@campus.edu</dd>
+                    </div>
+                    <div className="flex justify-between gap-2">
+                      <dt className="font-semibold text-slate-700 dark:text-slate-300">Maintenance</dt>
+                      <dd className="font-mono text-slate-600 dark:text-slate-400">maintenance@campus.edu</dd>
+                    </div>
+                  </dl>
                   <p className="text-xs font-mono font-semibold text-brand-700 dark:text-brand-300 mt-3">
                     Password for all: Campus@123
                   </p>

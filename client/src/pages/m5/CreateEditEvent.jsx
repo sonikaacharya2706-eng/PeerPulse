@@ -249,7 +249,7 @@ const CreateEditEvent = () => {
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. CSE, ECE"
+                    placeholder="e.g. ISE, ECE"
                     value={form.targetDepartments}
                     onChange={(e) => setForm({ ...form, targetDepartments: e.target.value })}
                     className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500"

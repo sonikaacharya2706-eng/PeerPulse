@@ -92,7 +92,7 @@ const seedDatabase = async () => {
       email: 'faculty1@campus.edu',
       password: commonPassword,
       role: 'faculty',
-      department: 'CSE',
+      department: 'ISE',
       phone: '+91 9876500001',
     });
 
@@ -101,7 +101,7 @@ const seedDatabase = async () => {
       email: 'faculty2@campus.edu',
       password: commonPassword,
       role: 'faculty',
-      department: 'CSE',
+      department: 'ISE',
       phone: '+91 9876500002',
     });
 
@@ -113,9 +113,9 @@ const seedDatabase = async () => {
     ];
 
     for (let i = 1; i <= 10; i++) {
-      const dept = i <= 6 ? 'CSE' : 'ECE';
+      const dept = i <= 6 ? 'ISE' : 'ECE';
       const year = i % 2 === 0 ? 2 : 3;
-      const rollNo = `${dept === 'CSE' ? '22CS' : '22EC'}${String(i).padStart(3, '0')}`;
+      const rollNo = `${dept === 'ISE' ? '22IS' : '22EC'}${String(i).padStart(3, '0')}`;
 
       const st = await User.create({
         name: studentNames[i - 1],
@@ -190,31 +190,31 @@ const seedDatabase = async () => {
     const classrooms = await Classroom.insertMany(classroomDefs);
     console.log('[Seed] 12 Classrooms seeded.');
 
-    // 3. WEEKLY TIMETABLE FOR 2 CLASSES (CSE Year 2 Sec A, and CSE Year 3 Sec A)
+    // 3. WEEKLY TIMETABLE FOR 2 CLASSES (ISE Year 2 Sec A, and ISE Year 3 Sec A)
     const timetableEntries = [
-      // CSE Year 2 Sec A - Monday (Day 1) to Friday (Day 5)
-      { classroom: classrooms[0]._id, subject: 'Data Structures & Algorithms', faculty: faculty1._id, department: 'CSE', year: 2, section: 'A', dayOfWeek: 1, startTime: '09:00', endTime: '10:00' },
-      { classroom: classrooms[1]._id, subject: 'Computer Architecture', faculty: faculty2._id, department: 'CSE', year: 2, section: 'A', dayOfWeek: 1, startTime: '10:00', endTime: '11:00' },
-      { classroom: classrooms[4]._id, subject: 'DSA Lab Practical', faculty: faculty1._id, department: 'CSE', year: 2, section: 'A', dayOfWeek: 1, startTime: '14:00', endTime: '16:00' },
+      // ISE Year 2 Sec A - Monday (Day 1) to Friday (Day 5)
+      { classroom: classrooms[0]._id, subject: 'Data Structures & Algorithms', faculty: faculty1._id, department: 'ISE', year: 2, section: 'A', dayOfWeek: 1, startTime: '09:00', endTime: '10:00' },
+      { classroom: classrooms[1]._id, subject: 'Computer Architecture', faculty: faculty2._id, department: 'ISE', year: 2, section: 'A', dayOfWeek: 1, startTime: '10:00', endTime: '11:00' },
+      { classroom: classrooms[4]._id, subject: 'DSA Lab Practical', faculty: faculty1._id, department: 'ISE', year: 2, section: 'A', dayOfWeek: 1, startTime: '14:00', endTime: '16:00' },
 
-      { classroom: classrooms[0]._id, subject: 'Discrete Mathematics', faculty: faculty2._id, department: 'CSE', year: 2, section: 'A', dayOfWeek: 2, startTime: '09:00', endTime: '10:00' },
-      { classroom: classrooms[1]._id, subject: 'Data Structures & Algorithms', faculty: faculty1._id, department: 'CSE', year: 2, section: 'A', dayOfWeek: 2, startTime: '11:00', endTime: '12:00' },
+      { classroom: classrooms[0]._id, subject: 'Discrete Mathematics', faculty: faculty2._id, department: 'ISE', year: 2, section: 'A', dayOfWeek: 2, startTime: '09:00', endTime: '10:00' },
+      { classroom: classrooms[1]._id, subject: 'Data Structures & Algorithms', faculty: faculty1._id, department: 'ISE', year: 2, section: 'A', dayOfWeek: 2, startTime: '11:00', endTime: '12:00' },
 
-      { classroom: classrooms[0]._id, subject: 'Digital Logic Design', faculty: faculty2._id, department: 'CSE', year: 2, section: 'A', dayOfWeek: 3, startTime: '10:00', endTime: '11:00' },
-      { classroom: classrooms[4]._id, subject: 'Web Technologies Lab', faculty: faculty1._id, department: 'CSE', year: 2, section: 'A', dayOfWeek: 3, startTime: '14:00', endTime: '16:00' },
+      { classroom: classrooms[0]._id, subject: 'Digital Logic Design', faculty: faculty2._id, department: 'ISE', year: 2, section: 'A', dayOfWeek: 3, startTime: '10:00', endTime: '11:00' },
+      { classroom: classrooms[4]._id, subject: 'Web Technologies Lab', faculty: faculty1._id, department: 'ISE', year: 2, section: 'A', dayOfWeek: 3, startTime: '14:00', endTime: '16:00' },
 
-      { classroom: classrooms[1]._id, subject: 'Computer Architecture', faculty: faculty2._id, department: 'CSE', year: 2, section: 'A', dayOfWeek: 4, startTime: '09:00', endTime: '10:00' },
-      { classroom: classrooms[0]._id, subject: 'Discrete Mathematics', faculty: faculty2._id, department: 'CSE', year: 2, section: 'A', dayOfWeek: 4, startTime: '11:00', endTime: '12:00' },
+      { classroom: classrooms[1]._id, subject: 'Computer Architecture', faculty: faculty2._id, department: 'ISE', year: 2, section: 'A', dayOfWeek: 4, startTime: '09:00', endTime: '10:00' },
+      { classroom: classrooms[0]._id, subject: 'Discrete Mathematics', faculty: faculty2._id, department: 'ISE', year: 2, section: 'A', dayOfWeek: 4, startTime: '11:00', endTime: '12:00' },
 
-      { classroom: classrooms[0]._id, subject: 'Data Structures & Algorithms', faculty: faculty1._id, department: 'CSE', year: 2, section: 'A', dayOfWeek: 5, startTime: '10:00', endTime: '11:00' },
+      { classroom: classrooms[0]._id, subject: 'Data Structures & Algorithms', faculty: faculty1._id, department: 'ISE', year: 2, section: 'A', dayOfWeek: 5, startTime: '10:00', endTime: '11:00' },
 
-      // CSE Year 3 Sec A
-      { classroom: classrooms[2]._id, subject: 'Operating Systems', faculty: faculty1._id, department: 'CSE', year: 3, section: 'A', dayOfWeek: 1, startTime: '11:00', endTime: '12:00' },
-      { classroom: classrooms[5]._id, subject: 'OS Kernel Lab', faculty: faculty1._id, department: 'CSE', year: 3, section: 'A', dayOfWeek: 1, startTime: '14:00', endTime: '16:00' },
-      { classroom: classrooms[2]._id, subject: 'Database Management Systems', faculty: faculty2._id, department: 'CSE', year: 3, section: 'A', dayOfWeek: 2, startTime: '10:00', endTime: '11:00' },
-      { classroom: classrooms[2]._id, subject: 'Computer Networks', faculty: faculty1._id, department: 'CSE', year: 3, section: 'A', dayOfWeek: 3, startTime: '09:00', endTime: '10:00' },
-      { classroom: classrooms[2]._id, subject: 'Software Engineering', faculty: faculty2._id, department: 'CSE', year: 3, section: 'A', dayOfWeek: 4, startTime: '10:00', endTime: '11:00' },
-      { classroom: classrooms[5]._id, subject: 'DBMS Project Lab', faculty: faculty2._id, department: 'CSE', year: 3, section: 'A', dayOfWeek: 5, startTime: '14:00', endTime: '16:00' },
+      // ISE Year 3 Sec A
+      { classroom: classrooms[2]._id, subject: 'Operating Systems', faculty: faculty1._id, department: 'ISE', year: 3, section: 'A', dayOfWeek: 1, startTime: '11:00', endTime: '12:00' },
+      { classroom: classrooms[5]._id, subject: 'OS Kernel Lab', faculty: faculty1._id, department: 'ISE', year: 3, section: 'A', dayOfWeek: 1, startTime: '14:00', endTime: '16:00' },
+      { classroom: classrooms[2]._id, subject: 'Database Management Systems', faculty: faculty2._id, department: 'ISE', year: 3, section: 'A', dayOfWeek: 2, startTime: '10:00', endTime: '11:00' },
+      { classroom: classrooms[2]._id, subject: 'Computer Networks', faculty: faculty1._id, department: 'ISE', year: 3, section: 'A', dayOfWeek: 3, startTime: '09:00', endTime: '10:00' },
+      { classroom: classrooms[2]._id, subject: 'Software Engineering', faculty: faculty2._id, department: 'ISE', year: 3, section: 'A', dayOfWeek: 4, startTime: '10:00', endTime: '11:00' },
+      { classroom: classrooms[5]._id, subject: 'DBMS Project Lab', faculty: faculty2._id, department: 'ISE', year: 3, section: 'A', dayOfWeek: 5, startTime: '14:00', endTime: '16:00' },
     ];
 
     await Timetable.insertMany(timetableEntries);
@@ -273,7 +273,7 @@ const seedDatabase = async () => {
       <rect x="620" y="360" width="240" height="42" fill="#334155" rx="6"/>
       <text x="740" y="386" fill="#f1f5f9" font-size="12" text-anchor="middle">15:00 - Sports &amp; Clubs</text>
 
-      <text x="450" y="475" fill="#64748b" font-size="11" text-anchor="middle">Signed &amp; Approved by HOD Dr. Alan Turing &bull; Ref: CSE/2026/TT-01</text>
+      <text x="450" y="475" fill="#64748b" font-size="11" text-anchor="middle">Signed &amp; Approved by HOD Dr. Alan Turing &bull; Ref: ISE/2026/TT-01</text>
     </svg>`;
 
     const timetableFile = await File.create({
@@ -286,8 +286,8 @@ const seedDatabase = async () => {
 
     await TimetableImage.create([
       {
-        title: 'CSE 2nd Year Section A Master Timetable',
-        department: 'CSE',
+        title: 'ISE 2nd Year Section A Master Timetable',
+        department: 'ISE',
         year: 2,
         section: 'A',
         semester: 'Odd Semester 2026',
@@ -296,8 +296,8 @@ const seedDatabase = async () => {
         uploadedBy: faculty1._id,
       },
       {
-        title: 'CSE 3rd Year Section A Master Timetable',
-        department: 'CSE',
+        title: 'ISE 3rd Year Section A Master Timetable',
+        department: 'ISE',
         year: 3,
         section: 'A',
         semester: 'Odd Semester 2026',
@@ -417,14 +417,14 @@ const seedDatabase = async () => {
       // Other varied items
       {
         type: 'lost',
-        title: 'Student ID Card - 22CS004',
+        title: 'Student ID Card - 22IS004',
         category: 'id_cards',
         description: 'Lost student identity smart card with lanyard.',
         dateOccurred: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
         location: 'Main Campus Cafeteria',
         reportedBy: students[3]._id,
         status: 'reported',
-        keywords: extractKeywords('Student ID Card 22CS004 identity smart card lanyard Cafeteria'),
+        keywords: extractKeywords('Student ID Card 22IS004 identity smart card lanyard Cafeteria'),
       },
       {
         type: 'found',
@@ -487,14 +487,14 @@ const seedDatabase = async () => {
     console.log('[Seed] 10 Lost/Found items seeded (with 2 intentionally matching pairs).');
 
     // 6. PAST ATTENDANCE SESSIONS & RECORDS (with 1 student having < 75% attendance)
-    // Create 3 past sessions for CSE Year 2 Sec A
+    // Create 3 past sessions for ISE Year 2 Sec A
     const pastSessions = [];
     for (let sIdx = 1; sIdx <= 3; sIdx++) {
       const sessDate = new Date(Date.now() - sIdx * 24 * 60 * 60 * 1000);
       const session = await AttendanceSession.create({
         faculty: faculty1._id,
         subject: 'Data Structures & Algorithms',
-        department: 'CSE',
+        department: 'ISE',
         year: 2,
         section: 'A',
         classroom: classrooms[0]._id,
@@ -896,7 +896,7 @@ const seedDatabase = async () => {
         organizer: faculty1._id,
         capacity: 250,
         registrationDeadline: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
-        targetDepartments: ['CSE', 'ECE'],
+        targetDepartments: ['ISE', 'ECE'],
         qrSecret: 'hackathon_secret',
       },
       {
@@ -1026,11 +1026,11 @@ const seedDatabase = async () => {
     console.log('Password for ALL seeded accounts: Campus@123\n');
     console.log('Demo Accounts by Role:');
     console.log('  [ADMIN]       : admin@campus.edu');
-    console.log('  [FACULTY 1]   : faculty1@campus.edu  (Dept: CSE)');
-    console.log('  [FACULTY 2]   : faculty2@campus.edu  (Dept: CSE)');
-    console.log('  [STUDENT 1]   : student1@campus.edu  (CSE Yr 2, 100% Attendance, Confirmed in Cap 2 Event)');
-    console.log('  [STUDENT 2]   : student2@campus.edu  (CSE Yr 2, 66% Attendance < 75% Flag)');
-    console.log('  [STUDENT 3]   : student3@campus.edu  (CSE Yr 3, Waitlisted in Cap 2 Event)');
+    console.log('  [FACULTY 1]   : faculty1@campus.edu  (Dept: ISE)');
+    console.log('  [FACULTY 2]   : faculty2@campus.edu  (Dept: ISE)');
+    console.log('  [STUDENT 1]   : student1@campus.edu  (ISE Yr 2, 100% Attendance, Confirmed in Cap 2 Event)');
+    console.log('  [STUDENT 2]   : student2@campus.edu  (ISE Yr 2, 66% Attendance < 75% Flag)');
+    console.log('  [STUDENT 3]   : student3@campus.edu  (ISE Yr 3, Waitlisted in Cap 2 Event)');
     console.log('  [STUDENT 4-10]: student4@campus.edu ... student10@campus.edu');
     console.log('  [SECURITY]    : security@campus.edu  (Gate Scanner & Visitor Passes)');
     console.log('  [MAINTENANCE1]: maintenance1@campus.edu (Dave Electricals - Assigned CMP-2026-0001)');

@@ -97,8 +97,8 @@ All seeded accounts share the common password: **`Campus@123`**
 | **Admin** | `admin@campus.edu` | `Campus@123` | Full system control, user CRUD, audit logs, room booking approval, match confirmation, complaint reassignment & analytics |
 | **Faculty** | `faculty1@campus.edu` | `Campus@123` | Teaching schedule, room booking requests, live attendance QR session, attendance PDF/CSV export, event creation |
 | **Faculty (Alternate)** | `faculty2@campus.edu` | `Campus@123` | Clash detection testing (scheduling conflicts in same room / time) |
-| **Student 1 (CSE, Year 3)** | `student1@campus.edu` | `Campus@123` | Free room finder, dynamic QR attendance scanner, reporting lost items, raising complaints, registering for events |
-| **Student 2 (CSE, Year 2)** | `student2@campus.edu` | `Campus@123` | Low attendance (<75%) alert verification, waitlisted event registration testing |
+| **Student 1 (ISE, Year 3)** | `student1@campus.edu` | `Campus@123` | Free room finder, dynamic QR attendance scanner, reporting lost items, raising complaints, registering for events |
+| **Student 2 (ISE, Year 2)** | `student2@campus.edu` | `Campus@123` | Low attendance (<75%) alert verification, waitlisted event registration testing |
 | **Security** | `security@campus.edu` | `Campus@123` | Visitor pass generation, QR gate check-in / check-out scanner, on-campus active visitor monitoring, gate found-item registration |
 | **Maintenance** | `maintenance@campus.edu` | `Campus@123` | Maintenance task board, advancing ticket status (`in_progress` $\rightarrow$ `resolved`), uploading completion remarks |
 | **Maintenance 1** | `maintenance1@campus.edu` | `Campus@123` | Assigned electrical maintenance technician workflow |

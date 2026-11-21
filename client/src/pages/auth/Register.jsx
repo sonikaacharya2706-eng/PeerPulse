@@ -12,7 +12,7 @@ const Register = () => {
     name: '',
     email: '',
     password: '',
-    department: 'CSE',
+    department: 'ISE',
     year: '2',
     rollNo: '',
     phone: '',
@@ -118,7 +118,7 @@ const Register = () => {
               name="department"
               value={formData.department}
               onChange={handleChange}
-              placeholder="e.g. CSE, ECE"
+              placeholder="e.g. ISE, ECE"
               className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
           </div>

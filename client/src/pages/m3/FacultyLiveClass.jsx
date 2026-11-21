@@ -31,7 +31,7 @@ const FacultyLiveClass = () => {
   // Form for starting a session
   const [form, setForm] = useState({
     subject: 'Data Structures & Algorithms',
-    department: 'CSE',
+    department: 'ISE',
     year: '2',
     section: 'A',
     classroom: '',

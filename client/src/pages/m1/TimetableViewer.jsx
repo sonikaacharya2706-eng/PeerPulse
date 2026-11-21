@@ -39,7 +39,7 @@ const TimetableViewer = () => {
 
   // Filter state (defaults to student's department/year if student)
   const [filters, setFilters] = useState({
-    department: user?.role === 'student' && user?.department ? user.department : 'CSE',
+    department: user?.role === 'student' && user?.department ? user.department : 'ISE',
     year: user?.role === 'student' && user?.year ? String(user.year) : '2',
     section: 'A',
     faculty: '',
@@ -55,7 +55,7 @@ const TimetableViewer = () => {
   // Upload Form State
   const [uploadForm, setUploadForm] = useState({
     title: '',
-    department: user?.department || 'CSE',
+    department: user?.department || 'ISE',
     year: '2',
     section: 'A',
     semester: 'Odd Semester 2026',
@@ -175,7 +175,7 @@ const TimetableViewer = () => {
       setFilePreviewUrl('');
       setUploadForm({
         title: '',
-        department: user?.department || 'CSE',
+        department: user?.department || 'ISE',
         year: '2',
         section: 'A',
         semester: 'Odd Semester 2026',
@@ -294,7 +294,7 @@ const TimetableViewer = () => {
               type="text"
               value={filters.department}
               onChange={(e) => setFilters({ ...filters, department: e.target.value })}
-              placeholder="e.g. CSE"
+              placeholder="e.g. ISE"
               className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
           </div>
@@ -570,7 +570,7 @@ const TimetableViewer = () => {
               required
               value={uploadForm.title}
               onChange={(e) => setUploadForm({ ...uploadForm, title: e.target.value })}
-              placeholder="e.g. CSE 3rd Year Sec A Odd Semester Timetable"
+              placeholder="e.g. ISE 3rd Year Sec A Odd Semester Timetable"
               className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
           </div>
@@ -585,7 +585,7 @@ const TimetableViewer = () => {
                 required
                 value={uploadForm.department}
                 onChange={(e) => setUploadForm({ ...uploadForm, department: e.target.value.toUpperCase() })}
-                placeholder="CSE"
+                placeholder="ISE"
                 className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500 uppercase"
               />
             </div>

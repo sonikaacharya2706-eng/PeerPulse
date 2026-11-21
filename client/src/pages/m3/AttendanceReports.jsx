@@ -13,7 +13,7 @@ const AttendanceReports = () => {
   const [loading, setLoading] = useState(true);
 
   const [subject, setSubject] = useState('');
-  const [department, setDepartment] = useState('CSE');
+  const [department, setDepartment] = useState('ISE');
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
 
@@ -115,7 +115,7 @@ const AttendanceReports = () => {
               type="text"
               value={department}
               onChange={(e) => setDepartment(e.target.value)}
-              placeholder="e.g. CSE"
+              placeholder="e.g. ISE"
               className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
           </div>

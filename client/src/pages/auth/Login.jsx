@@ -107,14 +107,14 @@ const Login = () => {
             onClick={() => fillDemo('faculty1@campus.edu')}
             className="px-2 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded text-slate-700 dark:text-slate-300 text-left font-medium transition"
           >
-            🎓 Faculty (CSE)
+            🎓 Faculty (ISE)
           </button>
           <button
             type="button"
             onClick={() => fillDemo('student1@campus.edu')}
             className="px-2 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded text-slate-700 dark:text-slate-300 text-left font-medium transition"
           >
-            📚 Student (CSE)
+            📚 Student (ISE)
           </button>
           <button
             type="button"

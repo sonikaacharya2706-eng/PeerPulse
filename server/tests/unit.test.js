@@ -228,7 +228,7 @@ describe('Security: Privilege Escalation Prevention on Registration (Supertest)'
         email: testEmail,
         password: 'Password123!',
         role: 'admin', // Adversary attempts privilege escalation
-        department: 'CSE',
+        department: 'ISE',
         year: 2,
         rollNo: `ATT_${Date.now()}`,
       });

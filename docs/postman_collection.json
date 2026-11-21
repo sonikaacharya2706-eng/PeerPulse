@@ -166,7 +166,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"New Student\",\n  \"email\": \"newstudent@campus.edu\",\n  \"password\": \"Campus@123\",\n  \"role\": \"student\",\n  \"department\": \"CSE\",\n  \"year\": 1,\n  \"rollNo\": \"24CS999\",\n  \"phone\": \"+91 9999988888\"\n}"
+              "raw": "{\n  \"name\": \"New Student\",\n  \"email\": \"newstudent@campus.edu\",\n  \"password\": \"Campus@123\",\n  \"role\": \"student\",\n  \"department\": \"ISE\",\n  \"year\": 1,\n  \"rollNo\": \"24IS999\",\n  \"phone\": \"+91 9999988888\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/auth/register",
@@ -281,11 +281,11 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/timetable?department=CSE&year=3",
+              "raw": "{{baseUrl}}/timetable?department=ISE&year=3",
               "host": ["{{baseUrl}}"],
               "path": ["timetable"],
               "query": [
-                { "key": "department", "value": "CSE" },
+                { "key": "department", "value": "ISE" },
                 { "key": "year", "value": "3" }
               ]
             }
@@ -312,7 +312,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"classroom\": \"LHC-101\",\n  \"subject\": \"Distributed Systems\",\n  \"faculty\": \"faculty1@campus.edu\",\n  \"department\": \"CSE\",\n  \"year\": 3,\n  \"section\": \"A\",\n  \"dayOfWeek\": 1,\n  \"startTime\": \"09:00\",\n  \"endTime\": \"10:00\",\n  \"status\": \"active\"\n}"
+              "raw": "{\n  \"classroom\": \"LHC-101\",\n  \"subject\": \"Distributed Systems\",\n  \"faculty\": \"faculty1@campus.edu\",\n  \"department\": \"ISE\",\n  \"year\": 3,\n  \"section\": \"A\",\n  \"dayOfWeek\": 1,\n  \"startTime\": \"09:00\",\n  \"endTime\": \"10:00\",\n  \"status\": \"active\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/timetable",
@@ -480,7 +480,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"subject\": \"Operating Systems\",\n  \"department\": \"CSE\",\n  \"year\": 3,\n  \"section\": \"A\",\n  \"roomNo\": \"LHC-101\",\n  \"geoRequired\": false\n}"
+              "raw": "{\n  \"subject\": \"Operating Systems\",\n  \"department\": \"ISE\",\n  \"year\": 3,\n  \"section\": \"A\",\n  \"roomNo\": \"LHC-101\",\n  \"geoRequired\": false\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/attendance/sessions",
@@ -813,7 +813,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"title\": \"Advanced AI & Robotics Workshop\",\n  \"description\": \"Hands-on hardware lab with autonomous rover simulation.\",\n  \"category\": \"workshop\",\n  \"venue\": \"CS-LAB-2\",\n  \"startAt\": \"2026-11-25T10:00:00Z\",\n  \"endAt\": \"2026-11-25T16:00:00Z\",\n  \"capacity\": 2,\n  \"registrationDeadline\": \"2026-11-24T23:59:59Z\",\n  \"targetDepartments\": [\"CSE\", \"ECE\"],\n  \"targetYears\": [2, 3]\n}"
+              "raw": "{\n  \"title\": \"Advanced AI & Robotics Workshop\",\n  \"description\": \"Hands-on hardware lab with autonomous rover simulation.\",\n  \"category\": \"workshop\",\n  \"venue\": \"CS-LAB-2\",\n  \"startAt\": \"2026-11-25T10:00:00Z\",\n  \"endAt\": \"2026-11-25T16:00:00Z\",\n  \"capacity\": 2,\n  \"registrationDeadline\": \"2026-11-24T23:59:59Z\",\n  \"targetDepartments\": [\"ISE\", \"ECE\"],\n  \"targetYears\": [2, 3]\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/events",

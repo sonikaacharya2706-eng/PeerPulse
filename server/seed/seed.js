@@ -35,7 +35,7 @@ const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/smart_camp
 
 const seedDatabase = async () => {
   try {
-    console.log('[Seed] Connecting to MongoDB at:', MONGO_URI);
+    console.log('[Seed] Connecting to MongoDB...');
     await mongoose.connect(MONGO_URI);
     console.log('[Seed] Connected.');
 

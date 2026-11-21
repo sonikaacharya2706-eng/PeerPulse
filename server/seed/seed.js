@@ -840,10 +840,27 @@ const seedDatabase = async () => {
         ],
         feedback: { rating: 4, comment: 'Gate working smoothly again.' },
       },
+      {
+        ticketId: 'CMP-2026-0013',
+        raisedBy: students[0]._id,
+        category: 'electrical',
+        building: 'Lecture Hall Complex',
+        room: 'LHC-102',
+        description: 'Lecture hall projector power connection needs inspection before the next class.',
+        priority: 'high',
+        status: 'assigned',
+        assignedTo: maintenanceMain._id,
+        slaDueAt: calculateSlaDueAt('high'),
+        escalated: false,
+        timeline: [
+          { status: 'submitted', by: students[0]._id, remark: 'Reported projector power issue.', at: new Date() },
+          { status: 'assigned', by: admin._id, remark: 'Assigned to the Campus Maintenance Desk.', at: new Date() },
+        ],
+      },
     ];
 
     await Complaint.insertMany(complaintDefs);
-    console.log('[Seed] 12 Complaints seeded across statuses (with CMP-2026-0001 auto-escalated for SLA breach).');
+    console.log('[Seed] 13 Complaints seeded across statuses (with CMP-2026-0001 auto-escalated for SLA breach).');
 
     // 9. EVENTS (8 events: past, upcoming, and ONE FULL EVENT WITH WAITLIST for testing Algorithm I)
     // Acceptance Test 8 Event: Capacity = 2, Registrants = 3 (Student 1 & 2 confirmed, Student 3 waitlisted)

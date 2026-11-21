@@ -44,8 +44,15 @@ const Dashboard = () => {
 
   if (loading) return <LoadingSpinner />;
 
+  const dashboard = data || {};
   const role = user?.role || 'student';
-  const stats = data?.stats || {};
+  const stats = dashboard.stats || {};
+  const todayClasses = dashboard.todayClasses || [];
+  const classesForDisplay = todayClasses.length
+    ? todayClasses
+    : dashboard.upcomingClasses || [];
+  const showingUpcomingClasses = todayClasses.length === 0 && classesForDisplay.length > 0;
+  const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
   return (
     <div className="space-y-6">
@@ -156,6 +163,44 @@ const Dashboard = () => {
               </div>
             </Card>
           </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card title="Open Complaints" action={<Link to="/m4/manager"><Button size="sm" variant="outline">Manage</Button></Link>}>
+              {dashboard.recentComplaints?.length ? (
+                <div className="space-y-3">
+                  {dashboard.recentComplaints.map((complaint) => (
+                    <div key={complaint._id} className="border-b last:border-0 pb-2 last:pb-0 text-xs">
+                      <p className="font-bold">{complaint.ticketId} · {complaint.category}</p>
+                      <p className="text-slate-500">{complaint.building}, {complaint.room} · {complaint.raisedBy?.name}</p>
+                      <p className="text-slate-400 capitalize">{complaint.status.replace('_', ' ')}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-slate-400 py-4 text-center">No open complaints.</p>
+              )}
+            </Card>
+
+            <Card title="Pending Room Bookings" action={<Link to="/m1/bookings"><Button size="sm" variant="outline">Review</Button></Link>}>
+              {dashboard.pendingBookingsList?.length ? (
+                <div className="space-y-3">
+                  {dashboard.pendingBookingsList.map((booking) => (
+                    <div key={booking._id} className="border-b last:border-0 pb-2 last:pb-0 text-xs">
+                      <p className="font-bold">{booking.purpose}</p>
+                      <p className="text-slate-500">
+                        {booking.classroom?.roomNo} · {booking.requestedBy?.name}
+                      </p>
+                      <p className="text-slate-400">
+                        {format(new Date(booking.date), 'MMM d')} · {booking.startTime}–{booking.endTime}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-slate-400 py-4 text-center">No room bookings are waiting for review.</p>
+              )}
+            </Card>
+          </div>
         </div>
       )}
 
@@ -182,16 +227,19 @@ const Dashboard = () => {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card title="Today's Teaching Schedule" action={<Link to="/m3/faculty/live"><Button size="sm">Start Class QR</Button></Link>}>
-              {data.todayClasses?.length === 0 ? (
-                <p className="text-xs text-slate-400 py-6 text-center">No lectures scheduled for today.</p>
+            <Card title={showingUpcomingClasses ? 'Next Teaching Schedule' : "Today's Teaching Schedule"} action={<Link to="/m3/faculty/live"><Button size="sm">Start Class QR</Button></Link>}>
+              {classesForDisplay.length === 0 ? (
+                <p className="text-xs text-slate-400 py-6 text-center">No lectures scheduled.</p>
               ) : (
                 <div className="space-y-2.5">
-                  {data.todayClasses.map((cls) => (
+                  {classesForDisplay.map((cls) => (
                     <div key={cls._id} className="p-3 rounded-lg border bg-slate-50 dark:bg-slate-900 text-xs flex justify-between items-center">
                       <div>
                         <p className="font-bold text-slate-900 dark:text-slate-100">{cls.subject}</p>
-                        <p className="text-[11px] text-slate-500">Room {cls.classroom?.roomNo} &bull; Sec {cls.section} (Yr {cls.year})</p>
+                        <p className="text-[11px] text-slate-500">
+                          {showingUpcomingClasses ? `${weekdays[cls.dayOfWeek]} · ` : ''}
+                          Room {cls.classroom?.roomNo} &bull; Sec {cls.section} (Yr {cls.year})
+                        </p>
                       </div>
                       <span className="font-mono text-brand-600 font-bold">{cls.startTime} - {cls.endTime}</span>
                     </div>
@@ -225,6 +273,42 @@ const Dashboard = () => {
               </div>
             </Card>
           </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card title="My Room Requests">
+              {dashboard.myBookings?.length ? (
+                <div className="space-y-3">
+                  {dashboard.myBookings.map((booking) => (
+                    <div key={booking._id} className="border-b last:border-0 pb-2 last:pb-0 text-xs">
+                      <p className="font-bold">{booking.purpose}</p>
+                      <p className="text-slate-500">
+                        {booking.classroom?.roomNo} · {format(new Date(booking.date), 'MMM d')} · {booking.startTime}–{booking.endTime}
+                      </p>
+                      <p className="text-slate-400 capitalize">{booking.status}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-slate-400 py-4 text-center">No room requests yet.</p>
+              )}
+            </Card>
+
+            <Card title="Upcoming Events">
+              {dashboard.myEvents?.length ? (
+                <div className="space-y-3">
+                  {dashboard.myEvents.map((event) => (
+                    <div key={event._id} className="border-b last:border-0 pb-2 last:pb-0 text-xs">
+                      <p className="font-bold">{event.title}</p>
+                      <p className="text-slate-500">{event.venue}</p>
+                      <p className="text-slate-400">{format(new Date(event.startAt), 'MMM d, h:mm a')}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-slate-400 py-4 text-center">No upcoming events hosted.</p>
+              )}
+            </Card>
+          </div>
         </div>
       )}
 
@@ -251,16 +335,19 @@ const Dashboard = () => {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card title="Today's Timetable" action={<Link to="/m1/my-schedule"><Button size="sm" variant="outline">Full Schedule</Button></Link>}>
-              {data.todayClasses?.length === 0 ? (
-                <p className="text-xs text-slate-400 py-6 text-center">No lectures scheduled today!</p>
+            <Card title={showingUpcomingClasses ? 'Next Scheduled Classes' : "Today's Timetable"} action={<Link to="/m1/my-schedule"><Button size="sm" variant="outline">Full Schedule</Button></Link>}>
+              {classesForDisplay.length === 0 ? (
+                <p className="text-xs text-slate-400 py-6 text-center">No lectures scheduled.</p>
               ) : (
                 <div className="space-y-2.5">
-                  {data.todayClasses.map((cls) => (
+                  {classesForDisplay.map((cls) => (
                     <div key={cls._id} className="p-3 rounded-lg border bg-slate-50 dark:bg-slate-900 text-xs flex justify-between items-center">
                       <div>
                         <p className="font-bold text-slate-900 dark:text-slate-100">{cls.subject}</p>
-                        <p className="text-[11px] text-slate-500">Room {cls.classroom?.roomNo} &bull; Prof. {cls.faculty?.name}</p>
+                        <p className="text-[11px] text-slate-500">
+                          {showingUpcomingClasses ? `${weekdays[cls.dayOfWeek]} · ` : ''}
+                          Room {cls.classroom?.roomNo} &bull; Prof. {cls.faculty?.name}
+                        </p>
                       </div>
                       <span className="font-mono text-brand-600 font-bold">{cls.startTime} - {cls.endTime}</span>
                     </div>
@@ -292,6 +379,42 @@ const Dashboard = () => {
                   <p className="text-[10px] opacity-80">Report campus defect</p>
                 </Link>
               </div>
+            </Card>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card title="My Recent Complaints">
+              {dashboard.myComplaints?.length ? (
+                <div className="space-y-3">
+                  {dashboard.myComplaints.map((complaint) => (
+                    <div key={complaint._id} className="border-b last:border-0 pb-2 last:pb-0 text-xs">
+                      <p className="font-bold">{complaint.ticketId} · {complaint.category}</p>
+                      <p className="text-slate-500">{complaint.building}, {complaint.room}</p>
+                      <p className="text-slate-400 capitalize">{complaint.status.replace('_', ' ')}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-slate-400 py-4 text-center">No complaints reported yet.</p>
+              )}
+            </Card>
+
+            <Card title="My Event Registrations">
+              {dashboard.myRegistrations?.length ? (
+                <div className="space-y-3">
+                  {dashboard.myRegistrations.map((registration) => (
+                    <div key={registration._id} className="border-b last:border-0 pb-2 last:pb-0 text-xs">
+                      <p className="font-bold">{registration.event?.title || 'Campus event'}</p>
+                      <p className="text-slate-500 capitalize">Status: {registration.status}</p>
+                      {registration.event?.startAt && (
+                        <p className="text-slate-400">{format(new Date(registration.event.startAt), 'MMM d, h:mm a')}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-slate-400 py-4 text-center">No event registrations yet.</p>
+              )}
             </Card>
           </div>
         </div>
@@ -332,6 +455,40 @@ const Dashboard = () => {
               </Card>
             </Link>
           </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card title="Recent Visitor Activity">
+              {dashboard.recentScans?.length ? (
+                <div className="space-y-3">
+                  {dashboard.recentScans.map((visitor) => (
+                    <div key={visitor._id} className="border-b last:border-0 pb-2 last:pb-0 text-xs">
+                      <p className="font-bold">{visitor.name} · {visitor.purpose}</p>
+                      <p className="text-slate-500">Host: {visitor.personToMeet?.name}</p>
+                      <p className="text-slate-400 capitalize">{visitor.status.replace('_', ' ')}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-slate-400 py-4 text-center">No visitor activity yet.</p>
+              )}
+            </Card>
+
+            <Card title="Found Items Reported">
+              {dashboard.foundItemsGate?.length ? (
+                <div className="space-y-3">
+                  {dashboard.foundItemsGate.map((item) => (
+                    <div key={item._id} className="border-b last:border-0 pb-2 last:pb-0 text-xs">
+                      <p className="font-bold">{item.title}</p>
+                      <p className="text-slate-500">{item.location}</p>
+                      <p className="text-slate-400 capitalize">{item.status}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-slate-400 py-4 text-center">No found items need attention.</p>
+              )}
+            </Card>
+          </div>
         </div>
       )}
 
@@ -354,11 +511,11 @@ const Dashboard = () => {
           </div>
 
           <Card title="Pending Work Orders" action={<Link to="/m4/maintenance-board"><Button size="sm">Task Board</Button></Link>}>
-            {data.assignedList?.length === 0 ? (
+            {dashboard.assignedList?.length === 0 ? (
               <p className="text-xs text-slate-400 py-6 text-center">No assigned repair tickets.</p>
             ) : (
               <div className="space-y-2.5">
-                {data.assignedList.map((t) => (
+                {dashboard.assignedList?.map((t) => (
                   <div key={t._id} className="p-3 rounded-lg border bg-slate-50 dark:bg-slate-900 text-xs flex justify-between items-center">
                     <div>
                       <span className="font-bold font-mono text-brand-600">{t.ticketId}</span>

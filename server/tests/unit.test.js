@@ -4,9 +4,26 @@ import { generateQRToken, verifyQRToken, calculateHaversineDistance } from '../s
 import { isClashing } from '../controllers/timetableController.js';
 import { calculateSlaDueAt } from '../services/slaCron.js';
 import { calculateMatchScore } from '../services/matchingService.js';
+import { getDashboardSummary, sortUpcomingClasses } from '../controllers/dashboardController.js';
 import connectDB from '../config/db.js';
 import { app } from '../server.js';
 import User from '../models/User.js';
+import Classroom from '../models/Classroom.js';
+import Timetable from '../models/Timetable.js';
+import LostFoundItem from '../models/LostFoundItem.js';
+import Complaint from '../models/Complaint.js';
+import Event from '../models/Event.js';
+import EventRegistration from '../models/EventRegistration.js';
+
+const createMockQuery = (result) => {
+  const query = {
+    populate: () => query,
+    sort: () => query,
+    limit: () => query,
+    then: (resolve, reject) => Promise.resolve(result).then(resolve, reject),
+  };
+  return query;
+};
 
 describe('Database startup configuration', () => {
   it('fails clearly when MONGO_URI is missing in production', async () => {
@@ -46,6 +63,56 @@ describe('CORS configuration', () => {
 
     expect(response.status).toBe(500);
     expect(response.body.message).toContain('not allowed by CORS policy');
+  });
+});
+
+describe('Dashboard upcoming class ordering', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('orders the next scheduled classes from the current day across the week boundary', () => {
+    const classes = [
+      { dayOfWeek: 5, startTime: '11:00' },
+      { dayOfWeek: 1, startTime: '10:00' },
+      { dayOfWeek: 1, startTime: '09:00' },
+    ];
+
+    expect(sortUpcomingClasses(classes, 6)).toEqual([
+      { dayOfWeek: 1, startTime: '09:00' },
+      { dayOfWeek: 1, startTime: '10:00' },
+      { dayOfWeek: 5, startTime: '11:00' },
+    ]);
+  });
+
+  it('returns upcoming classes for students when there are no classes today', async () => {
+    const nextClass = {
+      _id: 'class-1',
+      dayOfWeek: 1,
+      startTime: '09:00',
+      subject: 'Data Structures',
+    };
+
+    vi.spyOn(Classroom, 'countDocuments').mockResolvedValue(1);
+    vi.spyOn(Event, 'countDocuments').mockResolvedValue(1);
+    vi.spyOn(LostFoundItem, 'countDocuments').mockResolvedValue(0);
+    vi.spyOn(Timetable, 'find').mockImplementation((filter) =>
+      createMockQuery(filter.dayOfWeek === undefined ? [nextClass] : [])
+    );
+    vi.spyOn(Complaint, 'find').mockImplementation(() => createMockQuery([]));
+    vi.spyOn(EventRegistration, 'find').mockImplementation(() => createMockQuery([]));
+
+    const json = vi.fn();
+    await getDashboardSummary(
+      { user: { role: 'student', _id: 'student-1', department: 'ISE', year: 2 } },
+      { json },
+      vi.fn()
+    );
+
+    const summary = json.mock.calls[0][0].data;
+    expect(summary.stats.todayClassesCount).toBe(0);
+    expect(summary.todayClasses).toEqual([]);
+    expect(summary.upcomingClasses).toEqual([nextClass]);
   });
 });
 

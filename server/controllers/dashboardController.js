@@ -10,6 +10,32 @@ import Complaint from '../models/Complaint.js';
 import Event from '../models/Event.js';
 import EventRegistration from '../models/EventRegistration.js';
 
+export const sortUpcomingClasses = (classes, todayDay) =>
+  [...classes]
+    .sort((a, b) => {
+      const getDayOffset = (day) => (day - todayDay + 7) % 7 || 7;
+      const dayOffset = getDayOffset(a.dayOfWeek) - getDayOffset(b.dayOfWeek);
+      return dayOffset || a.startTime.localeCompare(b.startTime);
+    })
+    .slice(0, 5);
+
+const getClassSchedule = async (filter, todayDay, populate) => {
+  const todayClasses = await Timetable.find({
+    ...filter,
+    dayOfWeek: todayDay,
+    status: 'active',
+  }).populate(populate);
+
+  const upcomingClasses = todayClasses.length
+    ? []
+    : sortUpcomingClasses(
+        await Timetable.find({ ...filter, status: 'active' }).populate(populate),
+        todayDay
+      );
+
+  return { todayClasses, upcomingClasses };
+};
+
 // @desc    Role-aware dashboard summary stats & recent items
 // @route   GET /api/dashboard/summary
 // @access  Private
@@ -34,12 +60,23 @@ export const getDashboardSummary = async (req, res, next) => {
         openComplaints,
         escalatedComplaints,
         onCampusVisitors,
+        recentComplaints,
+        pendingBookingsList,
       ] = await Promise.all([
         User.countDocuments(),
         RoomBooking.countDocuments({ status: 'pending' }),
         Complaint.countDocuments({ status: { $nin: ['resolved', 'closed'] } }),
         Complaint.countDocuments({ escalated: true }),
         Visitor.countDocuments({ status: 'checked_in' }),
+        Complaint.find({ status: { $nin: ['resolved', 'closed'] } })
+          .sort({ createdAt: -1 })
+          .limit(5)
+          .populate('raisedBy', 'name'),
+        RoomBooking.find({ status: 'pending' })
+          .sort({ date: 1 })
+          .limit(5)
+          .populate('classroom', 'roomNo')
+          .populate('requestedBy', 'name'),
       ]);
 
       summary = {
@@ -54,37 +91,38 @@ export const getDashboardSummary = async (req, res, next) => {
           onCampusVisitors,
           reportedLostFound: reportedLostFoundCount,
         },
+        recentComplaints,
+        pendingBookingsList,
       };
     } else if (role === 'faculty') {
       const todayDay = new Date().getDay();
-      const [todayClasses, myBookings, myEvents, pendingClaims] = await Promise.all([
-        Timetable.find({ faculty: userId, dayOfWeek: todayDay, status: 'active' }).populate('classroom'),
+      const [schedule, myBookings, myEvents] = await Promise.all([
+        getClassSchedule({ faculty: userId }, todayDay, 'classroom'),
         RoomBooking.find({ requestedBy: userId }).sort({ createdAt: -1 }).limit(5).populate('classroom'),
-        Event.find({ organizer: userId, isCancelled: false }).sort({ startAt: 1 }).limit(5),
-        Complaint.countDocuments({ status: { $nin: ['resolved', 'closed'] } }),
+        Event.find({ organizer: userId, isCancelled: false, startAt: { $gte: new Date() } })
+          .sort({ startAt: 1 })
+          .limit(5),
       ]);
 
       summary = {
         role,
         stats: {
-          todayClassesCount: todayClasses.length,
+          todayClassesCount: schedule.todayClasses.length,
           totalClassrooms,
           activeEvents: activeEventsCount,
           myEventsCount: myEvents.length,
         },
-        todayClasses,
+        ...schedule,
         myBookings,
         myEvents,
       };
     } else if (role === 'student') {
       const todayDay = new Date().getDay();
-      const [todayClasses, myComplaints, myRegistrations] = await Promise.all([
-        Timetable.find({
+      const [schedule, myComplaints, myRegistrations] = await Promise.all([
+        getClassSchedule({
           department: req.user.department,
           ...(req.user.year && { year: req.user.year }),
-          dayOfWeek: todayDay,
-          status: 'active',
-        }).populate('classroom faculty'),
+        }, todayDay, 'classroom faculty'),
         Complaint.find({ raisedBy: userId }).sort({ createdAt: -1 }).limit(5),
         EventRegistration.find({ user: userId, status: { $in: ['registered', 'waitlisted'] } })
           .populate('event')
@@ -94,12 +132,12 @@ export const getDashboardSummary = async (req, res, next) => {
       summary = {
         role,
         stats: {
-          todayClassesCount: todayClasses.length,
+          todayClassesCount: schedule.todayClasses.length,
           myComplaintsCount: myComplaints.length,
           myRegistrationsCount: myRegistrations.length,
           activeEvents: activeEventsCount,
         },
-        todayClasses,
+        ...schedule,
         myComplaints,
         myRegistrations,
       };

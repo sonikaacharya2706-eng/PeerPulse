@@ -100,8 +100,10 @@ All seeded accounts share the common password: **`Campus@123`**
 | **Student 1 (ISE, Year 3)** | `student1@campus.edu` | `Campus@123` | Free room finder, dynamic QR attendance scanner, reporting lost items, raising complaints, registering for events |
 | **Student 2 (ISE, Year 2)** | `student2@campus.edu` | `Campus@123` | Low attendance (<75%) alert verification, waitlisted event registration testing |
 | **Security** | `security@campus.edu` | `Campus@123` | Visitor pass generation, QR gate check-in / check-out scanner, on-campus active visitor monitoring, gate found-item registration |
-| **Maintenance** | `maintenance@campus.edu` | `Campus@123` | Maintenance task board, advancing ticket status (`in_progress` $\rightarrow$ `resolved`), uploading completion remarks |
+| **Maintenance** | `maintenance@campus.edu` | `Campus@123` | Assigned demo work order, task board, advancing ticket status (`assigned` $\rightarrow$ `in_progress` $\rightarrow$ `resolved`), uploading completion remarks |
 | **Maintenance 1** | `maintenance1@campus.edu` | `Campus@123` | Assigned electrical maintenance technician workflow |
+
+The seeded demo data gives each role dashboard sample details: admin campus metrics and pending queues; faculty schedule, room requests, and events; student timetable, complaints, and registrations; security visitor activity and found items; and maintenance assigned work orders. When there are no classes today, faculty and student dashboards show the next scheduled classes instead.
 
 > [!TIP]
 > The login screen at [http://localhost:5173/login](http://localhost:5173/login) includes **1-click quick-fill buttons** for each role to facilitate rapid testing and evaluation.

@@ -509,6 +509,7 @@ const seedDatabase = async () => {
       await AttendanceRecord.create({
         session: session._id,
         student: students[0]._id,
+        deviceId: `seed-device-${students[0]._id}`,
         status: 'present',
         method: 'qr',
         markedAt: new Date(sessDate.getTime() + 5 * 60 * 1000),
@@ -519,6 +520,7 @@ const seedDatabase = async () => {
         await AttendanceRecord.create({
           session: session._id,
           student: students[1]._id,
+          deviceId: `seed-device-${students[1]._id}`,
           status: 'present',
           method: 'qr',
           markedAt: new Date(sessDate.getTime() + 6 * 60 * 1000),
@@ -530,6 +532,7 @@ const seedDatabase = async () => {
         await AttendanceRecord.create({
           session: session._id,
           student: students[2]._id,
+          deviceId: `seed-device-${students[2]._id}`,
           status: 'present',
           method: 'qr',
           markedAt: new Date(sessDate.getTime() + 7 * 60 * 1000),

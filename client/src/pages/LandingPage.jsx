@@ -202,12 +202,12 @@ const LandingPage = () => {
                       <dd className="font-mono text-slate-600 dark:text-slate-400">admin@campus.edu</dd>
                     </div>
                     <div className="flex justify-between gap-2">
-                      <dt className="font-semibold text-slate-700 dark:text-slate-300">Faculty</dt>
-                      <dd className="font-mono text-slate-600 dark:text-slate-400">faculty1@campus.edu</dd>
+                      <dt className="font-semibold text-slate-700 dark:text-slate-300">Faculty (Canara)</dt>
+                      <dd className="font-mono text-slate-600 dark:text-slate-400">sandeepkini@canaraengineering.in</dd>
                     </div>
                     <div className="flex justify-between gap-2">
-                      <dt className="font-semibold text-slate-700 dark:text-slate-300">Student</dt>
-                      <dd className="font-mono text-slate-600 dark:text-slate-400">student1@campus.edu</dd>
+                      <dt className="font-semibold text-slate-700 dark:text-slate-300">Student (ISE)</dt>
+                      <dd className="font-mono text-slate-600 dark:text-slate-400">sonikaacharya2706@gmail.com</dd>
                     </div>
                     <div className="flex justify-between gap-2">
                       <dt className="font-semibold text-slate-700 dark:text-slate-300">Security</dt>

@@ -307,3 +307,86 @@ describe('Security: Privilege Escalation Prevention on Registration (Supertest)'
     expect(response.body.data.user.role).not.toBe('admin');
   });
 });
+
+describe('Google Authentication & Verification (POST /api/auth/google)', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('rejects request with missing credential token', async () => {
+    const response = await request(app)
+      .post('/api/auth/google')
+      .send({});
+
+    expect(response.status).toBe(400);
+    expect(response.body.success).toBe(false);
+  });
+
+  it('provisions Canara Faculty account when verified with Google', async () => {
+    vi.spyOn(global, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        email: 'sandeepkini@canaraengineering.in',
+        name: 'Dr. Sandeep Kini',
+        picture: 'https://example.com/avatar.jpg',
+      }),
+    });
+
+    vi.spyOn(User, 'findOne').mockResolvedValue(null);
+    vi.spyOn(User, 'create').mockImplementation(async (data) => ({
+      ...data,
+      _id: '65e012345678901234567891',
+    }));
+
+    const response = await request(app)
+      .post('/api/auth/google')
+      .send({ credential: 'valid_mock_google_jwt_token' });
+
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(true);
+    expect(response.body.data.user.role).toBe('faculty');
+    expect(response.body.data.user.email).toBe('sandeepkini@canaraengineering.in');
+  });
+
+  it('provisions ISE Student account when verified with Google', async () => {
+    vi.spyOn(global, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        email: 'sonikaacharya2706@gmail.com',
+        name: 'Sonika Acharya',
+        picture: 'https://example.com/sonika.jpg',
+      }),
+    });
+
+    vi.spyOn(User, 'findOne').mockResolvedValue(null);
+    vi.spyOn(User, 'create').mockImplementation(async (data) => ({
+      ...data,
+      _id: '65e012345678901234567892',
+    }));
+
+    const response = await request(app)
+      .post('/api/auth/google')
+      .send({ credential: 'valid_mock_google_jwt_student' });
+
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(true);
+    expect(response.body.data.user.role).toBe('student');
+    expect(response.body.data.user.email).toBe('sonikaacharya2706@gmail.com');
+  });
+
+  it('rejects invalid Google credentials when Google API returns error', async () => {
+    vi.spyOn(global, 'fetch').mockResolvedValue({
+      ok: false,
+      status: 401,
+      json: async () => ({ error_description: 'Invalid Value' }),
+    });
+
+    const response = await request(app)
+      .post('/api/auth/google')
+      .send({ credential: 'invalid_tampered_token' });
+
+    expect(response.status).toBe(401);
+    expect(response.body.success).toBe(false);
+    expect(response.body.message).toContain('Invalid Google password or credentials');
+  });
+});

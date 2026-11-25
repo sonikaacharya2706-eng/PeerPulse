@@ -86,10 +86,10 @@ const seedDatabase = async () => {
       phone: '+91 9876500000',
     });
 
-    // Faculty
+    // Faculty (Canara Engineering College ISE Department)
     const faculty1 = await User.create({
-      name: 'Dr. Alan Turing',
-      email: 'faculty1@campus.edu',
+      name: 'Dr. Sandeep Kini',
+      email: 'sandeepkini@canaraengineering.in',
       password: commonPassword,
       role: 'faculty',
       department: 'ISE',
@@ -97,35 +97,63 @@ const seedDatabase = async () => {
     });
 
     const faculty2 = await User.create({
-      name: 'Dr. Ada Lovelace',
-      email: 'faculty2@campus.edu',
+      name: 'Prof. Pradeep M',
+      email: 'pradeepm@canaraengineering.in',
       password: commonPassword,
       role: 'faculty',
       department: 'ISE',
       phone: '+91 9876500002',
     });
 
-    // Students (10 students)
-    const students = [];
-    const studentNames = [
-      'John Doe', 'Alice Smith', 'Bob Johnson', 'Emma Watson', 'Michael Brown',
-      'Sophia Davis', 'Daniel Miller', 'Olivia Wilson', 'James Taylor', 'Grace Hopper'
+    const faculty3 = await User.create({
+      name: 'Prof. Geetha Laxmi',
+      email: 'geetha.laxmi@canaraengineering.in',
+      password: commonPassword,
+      role: 'faculty',
+      department: 'ISE',
+      phone: '+91 9876500003',
+    });
+
+    const faculty4 = await User.create({
+      name: 'Prof. Yashaswini',
+      email: 'yashaswini@canaraengineering.in',
+      password: commonPassword,
+      role: 'faculty',
+      department: 'ISE',
+      phone: '+91 9876500004',
+    });
+
+    // Students (15 Canara Engineering College ISE Students)
+    const studentData = [
+      { name: 'Shwetha S P', email: 'mgssp3014@gmail.com', rollNo: '4CB22IS001', year: 3, phone: '+91 9876510001' },
+      { name: 'Shreya Gouda', email: 'shreyagouda722@gmail.com', rollNo: '4CB22IS002', year: 3, phone: '+91 9876510002' },
+      { name: 'Spoorthi J Gatty', email: 'spoorthijgatty2@gmail.com', rollNo: '4CB22IS003', year: 3, phone: '+91 9876510003' },
+      { name: 'Sonika Acharya', email: 'sonikaacharya2706@gmail.com', rollNo: '4CB22IS004', year: 3, phone: '+91 9876510004' },
+      { name: 'Soukhya', email: 'soukhya0510@gmail.com', rollNo: '4CB22IS005', year: 3, phone: '+91 9876510005' },
+      { name: 'Rashmi Shetty', email: 'rashmishetty310@gmail.com', rollNo: '4CB22IS006', year: 3, phone: '+91 9876510006' },
+      { name: 'Pramod S', email: 'pramodsmg05@gmail.com', rollNo: '4CB22IS007', year: 3, phone: '+91 9876510007' },
+      { name: 'Prathamesh', email: 'prathameshprathamesh198@gmail.com', rollNo: '4CB22IS008', year: 3, phone: '+91 9876510008' },
+      { name: 'Shriguru Naik', email: 'shrigurunaik14@gmail.com', rollNo: '4CB22IS009', year: 3, phone: '+91 9876510009' },
+      { name: 'Prajwal Kulal', email: 'kulalprajwal309@gmail.com', rollNo: '4CB22IS010', year: 3, phone: '+91 9876510010' },
+      { name: 'Sachin Byndoor', email: 'sachinbyndoor05@gmail.com', rollNo: '4CB22IS011', year: 3, phone: '+91 9876510011' },
+      { name: 'Harshith K', email: 'gjehehdhzzzhzhx7656@gmail.com', rollNo: '4CB22IS012', year: 3, phone: '+91 9876510012' },
+      { name: 'Pramod V', email: 'pramodvishakanta796@gmail.com', rollNo: '4CB22IS013', year: 3, phone: '+91 9876510013' },
+      { name: 'Vaibhav Netta', email: 'vaibhavnetta@gmail.com', rollNo: '4CB22IS014', year: 3, phone: '+91 9876510014' },
+      { name: 'Rathnam', email: 'rathnamskjk@gmail.com', rollNo: '4CB22IS015', year: 3, phone: '+91 9876510015' },
     ];
 
-    for (let i = 1; i <= 10; i++) {
-      const dept = i <= 6 ? 'ISE' : 'ECE';
-      const year = i % 2 === 0 ? 2 : 3;
-      const rollNo = `${dept === 'ISE' ? '22CS' : '22EC'}${String(i).padStart(3, '0')}`;
-
+    const students = [];
+    for (let i = 0; i < studentData.length; i++) {
+      const s = studentData[i];
       const st = await User.create({
-        name: studentNames[i - 1],
-        email: `student${i}@campus.edu`,
+        name: s.name,
+        email: s.email.trim().toLowerCase(),
         password: commonPassword,
         role: 'student',
-        department: dept,
-        year,
-        rollNo,
-        phone: `+91 987651000${i - 1}`,
+        department: 'ISE',
+        year: s.year,
+        rollNo: s.rollNo,
+        phone: s.phone,
         clubs: i % 2 === 0 ? ['Coding Club', 'Robotics Club'] : ['Music Society', 'Sports Club'],
       });
       students.push(st);
@@ -1098,12 +1126,14 @@ const seedDatabase = async () => {
     console.log('Password for ALL seeded accounts: Campus@123\n');
     console.log('Demo Accounts by Role:');
     console.log('  [ADMIN]       : admin@campus.edu');
-    console.log('  [FACULTY 1]   : faculty1@campus.edu  (Dept: ISE)');
-    console.log('  [FACULTY 2]   : faculty2@campus.edu  (Dept: ISE)');
-    console.log('  [STUDENT 1]   : student1@campus.edu  (ISE Yr 3, 100% Attendance, Confirmed in Cap 2 Event)');
-    console.log('  [STUDENT 2]   : student2@campus.edu  (ISE Yr 2, 66% Attendance < 75% Flag)');
-    console.log('  [STUDENT 3]   : student3@campus.edu  (ISE Yr 3, Waitlisted in Cap 2 Event)');
-    console.log('  [STUDENT 4-10]: student4@campus.edu ... student10@campus.edu');
+    console.log('  [FACULTY 1]   : sandeepkini@canaraengineering.in (Dr. Sandeep Kini - HOD ISE)');
+    console.log('  [FACULTY 2]   : pradeepm@canaraengineering.in   (Prof. Pradeep M)');
+    console.log('  [FACULTY 3]   : geetha.laxmi@canaraengineering.in (Prof. Geetha Laxmi)');
+    console.log('  [FACULTY 4]   : yashaswini@canaraengineering.in (Prof. Yashaswini)');
+    console.log('  [STUDENTS]    : 15 ISE Students:');
+    studentData.forEach((st) => {
+      console.log(`    - ${st.name.padEnd(20)}: ${st.email} (Roll: ${st.rollNo})`);
+    });
     console.log('  [SECURITY]    : security@campus.edu  (Gate Scanner & Visitor Passes)');
     console.log('  [MAINTENANCE1]: maintenance1@campus.edu (Dave Electricals - Assigned CMP-2026-0001)');
     console.log('  [MAINTENANCE2]: maintenance2@campus.edu (Frank Plumber - Assigned CMP-2026-0002)');

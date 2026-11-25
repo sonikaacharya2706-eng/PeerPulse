@@ -33,6 +33,20 @@ export const useAuthStore = create((set, get) => {
       }
     },
 
+    loginWithGoogle: async (credential) => {
+      set({ isLoading: true });
+      try {
+        const res = await api.post('/auth/google', { credential });
+        const { user, token } = res.data;
+        get().setAuth(user, token);
+        set({ isLoading: false });
+        return { success: true, user };
+      } catch (err) {
+        set({ isLoading: false });
+        return { success: false, message: err.message };
+      }
+    },
+
     register: async (userData) => {
       set({ isLoading: true });
       try {

@@ -3,6 +3,7 @@ import { body } from 'express-validator';
 import {
   register,
   login,
+  googleAuth,
   getMe,
   updateProfile,
   changePassword,
@@ -13,6 +14,15 @@ import { protect } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 
 const router = express.Router();
+
+router.post(
+  '/google',
+  [
+    body('credential').notEmpty().withMessage('Google credential token is required'),
+    validate,
+  ],
+  googleAuth
+);
 
 router.post(
   '/register',

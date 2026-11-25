@@ -72,6 +72,32 @@ export const register = async (req, res, next) => {
   }
 };
 
+// Whitelisted College Faculty & Students for Canara Engineering College (ISE Dept)
+export const WHITELISTED_FACULTY_EMAILS = [
+  'sandeepkini@canaraengineering.in',
+  'pradeepm@canaraengineering.in',
+  'geetha.laxmi@canaraengineering.in',
+  'yashaswini@canaraengineering.in',
+];
+
+export const WHITELISTED_STUDENT_EMAILS = [
+  'mgssp3014@gmail.com',
+  'shreyagouda722@gmail.com',
+  'spoorthijgatty2@gmail.com',
+  'sonikaacharya2706@gmail.com',
+  'soukhya0510@gmail.com',
+  'rashmishetty310@gmail.com',
+  'pramodsmg05@gmail.com',
+  'prathameshprathamesh198@gmail.com',
+  'shrigurunaik14@gmail.com',
+  'kulalprajwal309@gmail.com',
+  'sachinbyndoor05@gmail.com',
+  'gjehehdhzzzhzhx7656@gmail.com',
+  'pramodvishakanta796@gmail.com',
+  'vaibhavnetta@gmail.com',
+  'rathnamskjk@gmail.com',
+];
+
 // @desc    Login user & get token
 // @route   POST /api/auth/login
 // @access  Public
@@ -86,7 +112,7 @@ export const login = async (req, res, next) => {
       });
     }
 
-    const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
+    const user = await User.findOne({ email: email.toLowerCase().trim() }).select('+password');
 
     if (!user || !(await user.matchPassword(password))) {
       return res.status(401).json({
@@ -124,6 +150,243 @@ export const login = async (req, res, next) => {
         },
       },
       message: 'Login successful',
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Google Sign-in / Sign-up verification (validates with Google OAuth)
+// @route   POST /api/auth/google
+// @access  Public
+export const googleAuth = async (req, res, next) => {
+  try {
+    const { credential } = req.body;
+    if (!credential) {
+      return res.status(400).json({
+        success: false,
+        message: 'Google credential token is required',
+      });
+    }
+
+    // Verify Google ID token via Google tokeninfo API
+    let googlePayload = null;
+    try {
+      const response = await fetch(
+        `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`
+      );
+      if (!response.ok) {
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid Google password or credentials. Google authentication failed.',
+        });
+      }
+      googlePayload = await response.json();
+    } catch (fetchErr) {
+      return res.status(401).json({
+        success: false,
+        message: 'Failed to verify with Google: ' + fetchErr.message,
+      });
+    }
+
+    if (!googlePayload || !googlePayload.email) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid Google account data returned by Google',
+      });
+    }
+
+    const email = googlePayload.email.toLowerCase().trim();
+    const name = googlePayload.name || email.split('@')[0];
+    const avatar = googlePayload.picture || '';
+
+    // Check if user already exists
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      // Determine role: Canara faculty gets 'faculty', others get 'student'
+      const isFaculty =
+        WHITELISTED_FACULTY_EMAILS.includes(email) || email.endsWith('@canaraengineering.in');
+      const assignedRole = isFaculty ? 'faculty' : 'student';
+
+      user = await User.create({
+        name,
+        email,
+        password: crypto.randomBytes(32).toString('hex'), // Secure random password
+        role: assignedRole,
+        department: 'ISE',
+        year: assignedRole === 'student' ? 3 : null,
+        avatar,
+        isActive: true,
+      });
+
+      await logAudit(req, 'GOOGLE_REGISTER', 'User', user._id, { email: user.email, role: user.role });
+    } else {
+      if (!user.isActive) {
+        return res.status(403).json({
+          success: false,
+          message: 'Account deactivated. Please contact an administrator.',
+        });
+      }
+      if (avatar && !user.avatar) {
+        user.avatar = avatar;
+        await user.save();
+      }
+      await logAudit(req, 'GOOGLE_LOGIN', 'User', user._id, { email: user.email });
+    }
+
+    const token = generateToken(user._id, user.role);
+
+    res.json({
+      success: true,
+      data: {
+        token,
+        user: {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          department: user.department,
+          year: user.year,
+          rollNo: user.rollNo,
+          phone: user.phone,
+          avatar: user.avatar,
+          clubs: user.clubs,
+        },
+      },
+      message: 'Google login successful',
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Whitelist of authorized faculty emails (Canara Engineering College)
+export const FACULTY_EMAILS = [
+  'sandeepkini@canaraengineering.in',
+  'pradeepm@canaraengineering.in',
+  'geetha.laxmi@canaraengineering.in',
+  'yashaswini@canaraengineering.in',
+];
+
+// Whitelist of authorized student emails (ISE Department)
+export const STUDENT_EMAILS = [
+  'mgssp3014@gmail.com',
+  'shreyagouda722@gmail.com',
+  'spoorthijgatty2@gmail.com',
+  'sonikaacharya2706@gmail.com',
+  'soukhya0510@gmail.com',
+  'rashmishetty310@gmail.com',
+  'pramodsmg05@gmail.com',
+  'prathameshprathamesh198@gmail.com',
+  'shrigurunaik14@gmail.com',
+  'kulalprajwal309@gmail.com',
+  'sachinbyndoor05@gmail.com',
+  'gjehehdhzzzhzhx7656@gmail.com',
+  'pramodvishakanta796@gmail.com',
+  'vaibhavnetta@gmail.com',
+  'rathnamskjk@gmail.com',
+];
+
+// @desc    Google Sign-in / Sign-up verification (verifies token directly with Google)
+// @route   POST /api/auth/google
+// @access  Public
+export const googleAuth = async (req, res, next) => {
+  try {
+    const { credential } = req.body;
+
+    if (!credential) {
+      return res.status(400).json({
+        success: false,
+        message: 'Google credential token is required',
+      });
+    }
+
+    // Verify token with Google's official OAuth tokeninfo API
+    let googleData;
+    try {
+      const response = await fetch(
+        `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`
+      );
+      if (!response.ok) {
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid Google password or credentials. Google authentication failed.',
+        });
+      }
+      googleData = await response.json();
+    } catch (err) {
+      return res.status(401).json({
+        success: false,
+        message: 'Google verification service unreachable: ' + err.message,
+      });
+    }
+
+    if (!googleData || !googleData.email) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid Google profile received',
+      });
+    }
+
+    const email = googleData.email.toLowerCase().trim();
+    const name = googleData.name || email.split('@')[0];
+    const avatar = googleData.picture || '';
+
+    // Check if user already exists
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      // Determine role: Faculty if listed or in @canaraengineering.in, else Student
+      const isFaculty = FACULTY_EMAILS.includes(email) || email.endsWith('@canaraengineering.in');
+      const assignedRole = isFaculty ? 'faculty' : 'student';
+
+      user = await User.create({
+        name,
+        email,
+        password: crypto.randomBytes(32).toString('hex'),
+        role: assignedRole,
+        department: 'ISE',
+        year: assignedRole === 'student' ? 3 : null,
+        avatar,
+        isActive: true,
+      });
+
+      await logAudit(req, 'GOOGLE_REGISTER', 'User', user._id, { email: user.email, role: user.role });
+    } else {
+      if (!user.isActive) {
+        return res.status(403).json({
+          success: false,
+          message: 'Account deactivated. Please contact an administrator.',
+        });
+      }
+      if (avatar && !user.avatar) {
+        user.avatar = avatar;
+        await user.save();
+      }
+      await logAudit(req, 'GOOGLE_LOGIN', 'User', user._id, { email: user.email });
+    }
+
+    const token = generateToken(user._id, user.role);
+
+    res.json({
+      success: true,
+      data: {
+        token,
+        user: {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          department: user.department,
+          year: user.year,
+          rollNo: user.rollNo,
+          phone: user.phone,
+          avatar: user.avatar,
+          clubs: user.clubs,
+        },
+      },
+      message: 'Google authentication successful',
     });
   } catch (error) {
     next(error);

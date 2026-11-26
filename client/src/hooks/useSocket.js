@@ -1,42 +1,63 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { io } from 'socket.io-client';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '../store/authStore';
 import { useNotificationStore } from '../store/notificationStore';
 
+let sharedSocket = null;
+let currentToken = null;
+
 export const useSocket = () => {
-  const socketRef = useRef(null);
   const token = useAuthStore((state) => state.token);
   const addRealtimeNotification = useNotificationStore((state) => state.addRealtimeNotification);
+  const [socket, setSocket] = useState(() => sharedSocket);
 
   useEffect(() => {
-    // When VITE_API_URL is relative (e.g. /api), connect to same origin
-    const socketUrl =
-      import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL.startsWith('http')
-        ? import.meta.env.VITE_API_URL.replace(/\/api\/?$/, '')
-        : window.location.origin;
+    if (!token) {
+      if (sharedSocket) {
+        sharedSocket.disconnect();
+        sharedSocket = null;
+        currentToken = null;
+        setSocket(null);
+      }
+      return;
+    }
 
-    const socket = io(socketUrl, {
-      auth: { token },
-      transports: ['websocket', 'polling'],
-    });
+    // If token changed or socket disconnected, create new connection
+    if (!sharedSocket || currentToken !== token) {
+      if (sharedSocket) {
+        sharedSocket.disconnect();
+      }
 
-    socketRef.current = socket;
+      const socketUrl =
+        import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL.startsWith('http')
+          ? import.meta.env.VITE_API_URL.replace(/\/api\/?$/, '')
+          : window.location.origin;
 
-    socket.on('connect', () => {
-      // Connected successfully
-    });
+      sharedSocket = io(socketUrl, {
+        auth: { token },
+        transports: ['websocket', 'polling'],
+      });
+      currentToken = token;
 
-    socket.on('notification:new', (notif) => {
-      addRealtimeNotification(notif);
-      const content = notif.title ? `${notif.title}: ${notif.message}` : notif.message;
-      toast(content, { duration: 4000, position: 'top-right' });
-    });
+      sharedSocket.on('notification:new', (notif) => {
+        addRealtimeNotification(notif);
+        const content = notif.title ? `${notif.title}: ${notif.message}` : notif.message;
+        toast(content, { duration: 4000, position: 'top-right' });
+      });
+    }
+
+    setSocket(sharedSocket);
+
+    const onConnect = () => setSocket(sharedSocket);
+    sharedSocket.on('connect', onConnect);
 
     return () => {
-      socket.disconnect();
+      if (sharedSocket) {
+        sharedSocket.off('connect', onConnect);
+      }
     };
   }, [token, addRealtimeNotification]);
 
-  return socketRef.current;
+  return socket;
 };

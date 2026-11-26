@@ -21,18 +21,32 @@ import {
   Bell,
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
+import { useSocket } from '../hooks/useSocket';
 import { format } from 'date-fns';
 
 const Dashboard = () => {
   const user = useAuthStore((state) => state.user);
+  const socket = useSocket();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [activeSessionData, setActiveSessionData] = useState(null);
+  const [liveAttendees, setLiveAttendees] = useState([]);
 
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
-        const res = await api.get('/dashboard/summary');
-        setData(res.data);
+        const [dashRes, activeRes] = await Promise.all([
+          api.get('/dashboard/summary'),
+          user?.role === 'faculty'
+            ? api.get('/attendance/sessions/active').catch(() => ({ data: null }))
+            : Promise.resolve({ data: null }),
+        ]);
+
+        setData(dashRes.data);
+        if (activeRes?.data?.session) {
+          setActiveSessionData(activeRes.data.session);
+          setLiveAttendees(activeRes.data.records || []);
+        }
       } catch (err) {
         toast.error(err.message || 'Failed to load dashboard summary');
       } finally {
@@ -40,7 +54,49 @@ const Dashboard = () => {
       }
     };
     fetchDashboard();
-  }, []);
+  }, [user?.role]);
+
+  // Real-time socket listener for dynamic attendance updates on Faculty Dashboard
+  useEffect(() => {
+    if (!socket || user?.role !== 'faculty') return;
+
+    if (activeSessionData?._id) {
+      socket.emit('join', `session:${activeSessionData._id}`);
+    }
+
+    const handleAttendance = (payload) => {
+      const record = payload?.record || payload;
+      if (!record?.student) return;
+
+      setLiveAttendees((prev) => {
+        if (prev.some((r) => r.student?._id === record.student?._id)) return prev;
+        return [record, ...prev];
+      });
+
+      toast.success(
+        `✓ ${record.student?.name} (${record.student?.rollNo || 'Roll N/A'}) scanned attendance!`,
+        { icon: '🎓', duration: 4000 }
+      );
+    };
+
+    const handleSessionEnded = () => {
+      setActiveSessionData(null);
+      setLiveAttendees([]);
+    };
+
+    socket.on('attendance:marked', handleAttendance);
+    socket.on('attendance:update', handleAttendance);
+    socket.on('session:ended', handleSessionEnded);
+
+    return () => {
+      socket.off('attendance:marked', handleAttendance);
+      socket.off('attendance:update', handleAttendance);
+      socket.off('session:ended', handleSessionEnded);
+      if (activeSessionData?._id) {
+        socket.emit('leave', `session:${activeSessionData._id}`);
+      }
+    };
+  }, [socket, user?.role, activeSessionData?._id]);
 
   if (loading) return <LoadingSpinner />;
 
@@ -207,6 +263,75 @@ const Dashboard = () => {
       {/* FACULTY DASHBOARD */}
       {role === 'faculty' && (
         <div className="space-y-6">
+          {/* Active Live Attendance Monitor (Dynamically Updated in Real-Time) */}
+          {activeSessionData && (
+            <div className="p-5 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-700 text-white shadow-xl space-y-4 border border-emerald-400/30">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-3.5 w-3.5 relative">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-200 opacity-80"></span>
+                    <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-white"></span>
+                  </span>
+                  <div>
+                    <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-200 flex items-center gap-1.5">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-300"></span> Live Classroom Session Active
+                    </span>
+                    <h2 className="text-xl font-extrabold mt-0.5">{activeSessionData.subject}</h2>
+                    <p className="text-xs text-emerald-100">
+                      Room {activeSessionData.classroom?.roomNo || 'Classroom'} &bull; Sec{' '}
+                      {activeSessionData.section} ({activeSessionData.department} Yr {activeSessionData.year})
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4 self-end sm:self-center">
+                  <div className="text-right">
+                    <span className="text-3xl font-black block leading-none tracking-tight">
+                      {liveAttendees.length}
+                    </span>
+                    <span className="text-[11px] text-emerald-200 font-medium">
+                      Students Present (Live)
+                    </span>
+                  </div>
+                  <Link to="/m3/faculty/live">
+                    <Button
+                      size="sm"
+                      className="bg-white text-emerald-800 hover:bg-emerald-50 border-0 font-bold shadow-md"
+                    >
+                      <QrCode className="h-4 w-4 mr-1.5" /> Projector View &rarr;
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+
+              {/* Dynamic Attendees List (Animated Chips) */}
+              <div className="pt-3 border-t border-white/20">
+                <p className="text-[11px] text-emerald-200 mb-2 font-semibold flex items-center justify-between">
+                  <span>Checked-in Students (dynamically updates when students scan):</span>
+                  <span className="text-[10px] font-mono text-emerald-100">WebSocket Live Stream</span>
+                </p>
+                {liveAttendees.length === 0 ? (
+                  <p className="text-xs text-emerald-100/70 italic py-1">
+                    Waiting for students to scan the live classroom QR...
+                  </p>
+                ) : (
+                  <div className="flex flex-wrap gap-2 max-h-24 overflow-y-auto pr-1">
+                    {liveAttendees.map((rec, idx) => (
+                      <span
+                        key={rec._id || idx}
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white/20 text-white backdrop-blur-md shadow-sm border border-white/10"
+                      >
+                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-200 shrink-0" />
+                        <span>{rec.student?.name}</span>
+                        <span className="text-[10px] opacity-80">({rec.student?.rollNo || 'Roll N/A'})</span>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <Card className="border-l-4 border-l-brand-600 p-4">
               <span className="text-[11px] font-semibold text-slate-400 uppercase">Today's Lectures</span>

@@ -91,12 +91,60 @@ export const endSession = async (req, res, next) => {
     const io = getIO();
     if (io) {
       io.to(`session:${session._id}`).emit('session:ended', { sessionId: session._id });
+      io.to(`user:${session.faculty.toString()}`).emit('session:ended', { sessionId: session._id });
     }
 
     res.json({
       success: true,
       data: session,
       message: 'Attendance session ended',
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Get currently active attendance session for faculty
+// @route   GET /api/attendance/sessions/active
+// @access  Private (faculty, admin)
+export const getActiveSession = async (req, res, next) => {
+  try {
+    const filter = { isActive: true };
+    if (req.user.role === 'faculty') {
+      filter.faculty = req.user._id;
+    }
+
+    const session = await AttendanceSession.findOne(filter)
+      .populate('faculty', 'name email')
+      .populate('classroom')
+      .sort({ startedAt: -1 });
+
+    if (!session) {
+      return res.json({
+        success: true,
+        data: null,
+        message: 'No active session found',
+      });
+    }
+
+    const token = generateQRToken(session.qrSecret, session._id.toString(), session.qrRefreshSeconds);
+    const qrPayload = JSON.stringify({ sid: session._id, token });
+    const qrDataURL = await generateQRCodeDataURL(qrPayload);
+
+    const records = await AttendanceRecord.find({ session: session._id })
+      .populate('student', 'name email rollNo department year')
+      .sort({ markedAt: -1 });
+
+    res.json({
+      success: true,
+      data: {
+        session,
+        qrDataURL,
+        token,
+        records,
+        totalMarked: records.length,
+      },
+      message: 'Active session retrieved',
     });
   } catch (error) {
     next(error);
@@ -311,11 +359,20 @@ export const markAttendance = async (req, res, next) => {
       'name email rollNo department year'
     );
 
-    // Realtime notification to faculty live view (Acceptance Test 4)
+    // Realtime notification to faculty live view & faculty dashboard (Acceptance Test 4)
     const io = getIO();
     if (io) {
+      const totalMarked = await AttendanceRecord.countDocuments({ session: session._id });
+      const payload = {
+        record: populatedRecord,
+        sessionId: session._id,
+        totalMarked,
+        subject: session.subject,
+      };
       io.to(`session:${session._id}`).emit('attendance:marked', populatedRecord);
+      io.to(`session:${session._id}`).emit('attendance:update', payload);
       io.to(`user:${session.faculty.toString()}`).emit('attendance:marked', populatedRecord);
+      io.to(`user:${session.faculty.toString()}`).emit('attendance:update', payload);
     }
 
     // Algorithm E: Compute updated attendance % for this student in this subject

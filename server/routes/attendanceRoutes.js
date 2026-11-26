@@ -3,6 +3,7 @@ import { body } from 'express-validator';
 import {
   startSession,
   endSession,
+  getActiveSession,
   getSessionQR,
   getSessionLive,
   markAttendance,
@@ -19,6 +20,8 @@ const router = express.Router();
 router.use(protect);
 
 // Faculty session management
+router.get('/sessions/active', authorize('faculty', 'admin'), getActiveSession);
+
 router.post(
   '/sessions',
   authorize('faculty'),

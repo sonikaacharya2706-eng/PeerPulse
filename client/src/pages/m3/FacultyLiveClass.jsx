@@ -41,20 +41,31 @@ const FacultyLiveClass = () => {
     radiusMeters: 50,
   });
 
-  // Fetch classrooms on mount
+  // Fetch classrooms and restore any active session on mount
   useEffect(() => {
-    const loadRooms = async () => {
+    const init = async () => {
       try {
-        const res = await api.get('/classrooms');
-        setClassrooms(res.data || []);
-        if (res.data?.length > 0) {
-          setForm((prev) => ({ ...prev, classroom: res.data[0]._id }));
+        const [roomsRes, activeRes] = await Promise.all([
+          api.get('/classrooms'),
+          api.get('/attendance/sessions/active').catch(() => ({ data: null })),
+        ]);
+
+        setClassrooms(roomsRes.data || []);
+        if (roomsRes.data?.length > 0) {
+          setForm((prev) => ({ ...prev, classroom: roomsRes.data[0]._id }));
+        }
+
+        if (activeRes?.data?.session) {
+          setActiveSession(activeRes.data.session);
+          setQrDataURL(activeRes.data.qrDataURL || '');
+          setAttendees(activeRes.data.records || []);
+          setCountdown(activeRes.data.session.qrRefreshSeconds || 20);
         }
       } catch (err) {
-        console.error(err);
+        console.error('Initialization error:', err);
       }
     };
-    loadRooms();
+    init();
   }, []);
 
   // Poll Dynamic QR code every 20 seconds when session is active
@@ -92,20 +103,34 @@ const FacultyLiveClass = () => {
     socket.emit('join', `session:${activeSession._id}`);
 
     const handleAttendanceMarked = (newRecord) => {
+      const record = newRecord?.record || newRecord;
+      if (!record?.student) return;
+
       setAttendees((prev) => {
-        if (prev.some((r) => r.student?._id === newRecord.student?._id)) return prev;
-        return [newRecord, ...prev];
+        if (prev.some((r) => r.student?._id === record.student?._id)) return prev;
+        return [record, ...prev];
       });
+
       toast.success(
-        `✓ ${newRecord.student?.name} (${newRecord.student?.rollNo || 'Roll N/A'}) marked attendance!`,
-        { icon: '🎓' }
+        `✓ ${record.student?.name} (${record.student?.rollNo || 'Roll N/A'}) marked attendance!`,
+        { icon: '🎓', duration: 4000 }
       );
     };
 
+    const handleSessionEnded = () => {
+      toast('Session concluded by administrator', { icon: 'ℹ️' });
+      setActiveSession(null);
+      setQrDataURL('');
+    };
+
     socket.on('attendance:marked', handleAttendanceMarked);
+    socket.on('attendance:update', handleAttendanceMarked);
+    socket.on('session:ended', handleSessionEnded);
 
     return () => {
       socket.off('attendance:marked', handleAttendanceMarked);
+      socket.off('attendance:update', handleAttendanceMarked);
+      socket.off('session:ended', handleSessionEnded);
       socket.emit('leave', `session:${activeSession._id}`);
     };
   }, [socket, activeSession]);

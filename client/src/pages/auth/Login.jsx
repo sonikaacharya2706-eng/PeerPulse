@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { Lock, Sparkles, KeyRound } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import Button from '../../components/common/Button';
+import GoogleAuthModal, { WHITELISTED_ACCOUNTS } from '../../components/auth/GoogleAuthModal';
+import SetPasswordModal from '../../components/auth/SetPasswordModal';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -13,36 +16,44 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [selectedStudentEmail, setSelectedStudentEmail] = useState('sonikaacharya2706@gmail.com');
 
-  useEffect(() => {
-    // Initialize official Google Identity Services button if available
-    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-    if (window.google?.accounts?.id && clientId) {
-      window.google.accounts.id.initialize({
-        client_id: clientId,
-        callback: async (response) => {
-          if (response.credential) {
-            setLoading(true);
-            const res = await loginWithGoogle(response.credential);
-            setLoading(false);
-            if (res.success) {
-              toast.success(`Google verified! Welcome ${res.user.name}`);
-              navigate('/dashboard');
-            } else {
-              toast.error(res.message || 'Google authentication failed');
-            }
-          }
-        },
-      });
+  // Modals
+  const [showGoogleModal, setShowGoogleModal] = useState(false);
+  const [showSetPasswordModal, setShowSetPasswordModal] = useState(false);
 
-      const btnContainer = document.getElementById('googleSignInBtn');
-      if (btnContainer) {
-        window.google.accounts.id.renderButton(btnContainer, {
-          theme: 'outline',
-          size: 'large',
-          width: 360,
-          text: 'signin_with',
-          shape: 'rectangular',
+  useEffect(() => {
+    // If VITE_GOOGLE_CLIENT_ID exists in environment, initialize GIS button
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || localStorage.getItem('google_client_id');
+    if (window.google?.accounts?.id && clientId) {
+      try {
+        window.google.accounts.id.initialize({
+          client_id: clientId,
+          callback: async (response) => {
+            if (response.credential) {
+              setLoading(true);
+              const res = await loginWithGoogle(response.credential);
+              setLoading(false);
+              if (res.success) {
+                toast.success(`Google verified! Welcome ${res.user.name}`);
+                navigate('/dashboard');
+              } else {
+                toast.error(res.message || 'Google authentication failed');
+              }
+            }
+          },
         });
+
+        const btnContainer = document.getElementById('googleSignInBtn');
+        if (btnContainer) {
+          window.google.accounts.id.renderButton(btnContainer, {
+            theme: 'outline',
+            size: 'large',
+            width: 360,
+            text: 'signin_with',
+            shape: 'rectangular',
+          });
+        }
+      } catch (err) {
+        console.warn('Google Identity button initialization skipped:', err.message);
       }
     }
   }, [loginWithGoogle, navigate]);
@@ -62,18 +73,15 @@ const Login = () => {
       toast.success(`Welcome back, ${result.user.name}!`);
       navigate('/dashboard');
     } else {
-      toast.error(result.message || 'Invalid email or password');
+      toast.error(
+        result.message || 'Invalid email or password. Initial password for college accounts is Campus@123'
+      );
     }
   };
 
-  const handleGooglePromptNotice = () => {
-    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-    if (!clientId) {
-      toast(
-        'Google OAuth requires VITE_GOOGLE_CLIENT_ID in client/.env. You can also sign in directly below with your campus password (default: Campus@123).',
-        { icon: 'ℹ️', duration: 6000 }
-      );
-    }
+  const handleGoogleClick = () => {
+    // Open Google Authentication modal offering both 1-click verified login and live popup
+    setShowGoogleModal(true);
   };
 
   const fillDemo = (demoEmail, demoPass = 'Campus@123') => {
@@ -81,23 +89,7 @@ const Login = () => {
     setPassword(demoPass);
   };
 
-  const studentEmails = [
-    { name: 'Sonika Acharya', email: 'sonikaacharya2706@gmail.com' },
-    { name: 'Shwetha S P', email: 'mgssp3014@gmail.com' },
-    { name: 'Shreya Gouda', email: 'shreyagouda722@gmail.com' },
-    { name: 'Spoorthi J Gatty', email: 'spoorthijgatty2@gmail.com' },
-    { name: 'Soukhya', email: 'soukhya0510@gmail.com' },
-    { name: 'Rashmi Shetty', email: 'rashmishetty310@gmail.com' },
-    { name: 'Pramod S', email: 'pramodsmg05@gmail.com' },
-    { name: 'Prathamesh', email: 'prathameshprathamesh198@gmail.com' },
-    { name: 'Shriguru Naik', email: 'shrigurunaik14@gmail.com' },
-    { name: 'Prajwal Kulal', email: 'kulalprajwal309@gmail.com' },
-    { name: 'Sachin Byndoor', email: 'sachinbyndoor05@gmail.com' },
-    { name: 'Harshith K', email: 'gjehehdhzzzhzhx7656@gmail.com' },
-    { name: 'Pramod V', email: 'pramodvishakanta796@gmail.com' },
-    { name: 'Vaibhav Netta', email: 'vaibhavnetta@gmail.com' },
-    { name: 'Rathnam', email: 'rathnamskjk@gmail.com' },
-  ];
+  const studentAccounts = WHITELISTED_ACCOUNTS.filter((acc) => acc.type === 'student');
 
   return (
     <div>
@@ -110,12 +102,12 @@ const Login = () => {
         </p>
       </div>
 
-      {/* Google Sign In Container */}
+      {/* Google Sign In Action */}
       <div className="space-y-3 mb-5">
         <div id="googleSignInBtn" className="flex justify-center min-h-[44px]">
           <button
             type="button"
-            onClick={handleGooglePromptNotice}
+            onClick={handleGoogleClick}
             className="w-full flex items-center justify-center gap-2.5 py-2.5 px-4 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/60 text-slate-700 dark:text-slate-200 text-sm font-medium transition shadow-sm"
           >
             <svg className="h-4 w-4" viewBox="0 0 24 24">
@@ -169,12 +161,23 @@ const Login = () => {
             <label className="block text-xs font-medium text-slate-700 dark:text-slate-300">
               Password
             </label>
-            <Link
-              to="/forgot-password"
-              className="text-xs text-brand-600 dark:text-brand-400 hover:underline"
-            >
-              Forgot password?
-            </Link>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setShowSetPasswordModal(true)}
+                className="text-xs text-brand-600 dark:text-brand-400 font-semibold hover:underline flex items-center gap-1"
+                title="Match campus password to your Google password"
+              >
+                <KeyRound className="h-3 w-3" /> Set / Match Password
+              </button>
+              <span className="text-slate-300 dark:text-slate-600">|</span>
+              <Link
+                to="/forgot-password"
+                className="text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:underline"
+              >
+                Forgot?
+              </Link>
+            </div>
           </div>
           <input
             type="password"
@@ -184,6 +187,9 @@ const Login = () => {
             placeholder="••••••••"
             className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
+          <p className="text-[11px] text-slate-400 mt-1">
+            Default seeded password is <strong className="text-slate-600 dark:text-slate-300">Campus@123</strong>.
+          </p>
         </div>
 
         <Button type="submit" loading={loading} className="w-full py-2.5">
@@ -249,7 +255,7 @@ const Login = () => {
               onChange={(e) => setSelectedStudentEmail(e.target.value)}
               className="flex-1 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1 text-xs text-slate-800 dark:text-slate-200"
             >
-              {studentEmails.map((st) => (
+              {studentAccounts.map((st) => (
                 <option key={st.email} value={st.email}>
                   {st.name} ({st.email})
                 </option>
@@ -297,6 +303,19 @@ const Login = () => {
           Create account
         </Link>
       </div>
+
+      {/* Google Authentication Modal */}
+      <GoogleAuthModal
+        isOpen={showGoogleModal}
+        onClose={() => setShowGoogleModal(false)}
+      />
+
+      {/* Personal Password Matching Modal */}
+      <SetPasswordModal
+        isOpen={showSetPasswordModal}
+        onClose={() => setShowSetPasswordModal(false)}
+        initialEmail={email || selectedStudentEmail}
+      />
     </div>
   );
 };

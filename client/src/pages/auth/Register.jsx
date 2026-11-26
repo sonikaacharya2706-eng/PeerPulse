@@ -3,10 +3,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '../../store/authStore';
 import Button from '../../components/common/Button';
+import GoogleAuthModal from '../../components/auth/GoogleAuthModal';
 
 const Register = () => {
   const navigate = useNavigate();
   const { register, loginWithGoogle } = useAuthStore();
+  const [showGoogleModal, setShowGoogleModal] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -56,14 +58,8 @@ const Register = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleGooglePromptNotice = () => {
-    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-    if (!clientId) {
-      toast(
-        'Google OAuth requires VITE_GOOGLE_CLIENT_ID in client/.env. You can complete manual registration below.',
-        { icon: 'ℹ️', duration: 5000 }
-      );
-    }
+  const handleGoogleClick = () => {
+    setShowGoogleModal(true);
   };
 
   const handleSubmit = async (e) => {
@@ -111,7 +107,7 @@ const Register = () => {
         <div id="googleSignUpBtn" className="flex justify-center min-h-[44px]">
           <button
             type="button"
-            onClick={handleGooglePromptNotice}
+            onClick={handleGoogleClick}
             className="w-full flex items-center justify-center gap-2.5 py-2.5 px-4 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/60 text-slate-700 dark:text-slate-200 text-sm font-medium transition shadow-sm"
           >
             <svg className="h-4 w-4" viewBox="0 0 24 24">
@@ -265,6 +261,11 @@ const Register = () => {
           Sign in
         </Link>
       </div>
+
+      <GoogleAuthModal
+        isOpen={showGoogleModal}
+        onClose={() => setShowGoogleModal(false)}
+      />
     </div>
   );
 };

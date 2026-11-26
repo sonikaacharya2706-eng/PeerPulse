@@ -9,6 +9,7 @@ import {
   changePassword,
   forgotPassword,
   resetPassword,
+  setPersonalPassword,
 } from '../controllers/authController.js';
 import { protect } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
@@ -18,10 +19,25 @@ const router = express.Router();
 router.post(
   '/google',
   [
-    body('credential').notEmpty().withMessage('Google credential token is required'),
+    body().custom((value) => {
+      if (!value.credential && !value.accessToken && !value.profile && !value.email) {
+        throw new Error('Google credential, access token, or email profile is required');
+      }
+      return true;
+    }),
     validate,
   ],
   googleAuth
+);
+
+router.post(
+  '/set-password',
+  [
+    body('email').isEmail().withMessage('Please provide a valid email'),
+    body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters long'),
+    validate,
+  ],
+  setPersonalPassword
 );
 
 router.post(

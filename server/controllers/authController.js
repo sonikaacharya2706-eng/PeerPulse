@@ -78,6 +78,7 @@ export const WHITELISTED_FACULTY_EMAILS = [
   'pradeepm@canaraengineering.in',
   'geetha.laxmi@canaraengineering.in',
   'yashaswini@canaraengineering.in',
+  'stanley@canaraengineering.in',
 ];
 
 export const WHITELISTED_STUDENT_EMAILS = [

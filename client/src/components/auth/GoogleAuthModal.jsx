@@ -35,6 +35,13 @@ export const WHITELISTED_ACCOUNTS = [
     type: 'faculty',
     avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Yashaswini',
   },
+  {
+    name: 'Stanley',
+    email: 'stanley@canaraengineering.in',
+    role: 'Faculty',
+    type: 'faculty',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Stanley',
+  },
   // ISE Students
   {
     name: 'Sonika Acharya',

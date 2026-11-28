@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useSocket } from '../hooks/useSocket';
+import AcademicTimetableCard from '../components/m1/AcademicTimetableCard';
 import { format } from 'date-fns';
 
 const Dashboard = () => {
@@ -506,6 +507,8 @@ const Dashboard = () => {
               </div>
             </Card>
           </div>
+
+          <AcademicTimetableCard />
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card title="My Recent Complaints">

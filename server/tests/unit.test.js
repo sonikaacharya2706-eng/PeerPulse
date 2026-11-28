@@ -394,7 +394,7 @@ describe('Google Authentication & Verification (POST /api/auth/google)', () => {
     expect(response.body.success).toBe(false);
   });
 
-  it('provisions Canara Faculty account when verified with Google', async () => {
+  it('authenticates existing Canara Faculty account when verified with Google', async () => {
     vi.spyOn(global, 'fetch').mockResolvedValue({
       ok: true,
       json: async () => ({
@@ -405,11 +405,15 @@ describe('Google Authentication & Verification (POST /api/auth/google)', () => {
       }),
     });
 
-    vi.spyOn(User, 'findOne').mockResolvedValue(null);
-    vi.spyOn(User, 'create').mockImplementation(async (data) => ({
-      ...data,
+    vi.spyOn(User, 'findOne').mockResolvedValue({
       _id: '65e012345678901234567891',
-    }));
+      name: 'Dr. Sandeep Kini',
+      email: 'sandeepkini@canaraengineering.in',
+      role: 'faculty',
+      department: 'ISE',
+      isActive: true,
+      avatar: 'https://example.com/avatar.jpg',
+    });
 
     const response = await request(app)
       .post('/api/auth/google')
@@ -421,7 +425,7 @@ describe('Google Authentication & Verification (POST /api/auth/google)', () => {
     expect(response.body.data.user.email).toBe('sandeepkini@canaraengineering.in');
   });
 
-  it('provisions ISE Student account when verified with Google', async () => {
+  it('authenticates existing ISE Student account when verified with Google', async () => {
     vi.spyOn(global, 'fetch').mockResolvedValue({
       ok: true,
       json: async () => ({
@@ -432,11 +436,16 @@ describe('Google Authentication & Verification (POST /api/auth/google)', () => {
       }),
     });
 
-    vi.spyOn(User, 'findOne').mockResolvedValue(null);
-    vi.spyOn(User, 'create').mockImplementation(async (data) => ({
-      ...data,
+    vi.spyOn(User, 'findOne').mockResolvedValue({
       _id: '65e012345678901234567892',
-    }));
+      name: 'Sonika Acharya',
+      email: 'sonikaacharya2706@gmail.com',
+      role: 'student',
+      department: 'ISE',
+      year: 3,
+      isActive: true,
+      avatar: 'https://example.com/sonika.jpg',
+    });
 
     const response = await request(app)
       .post('/api/auth/google')
@@ -446,6 +455,29 @@ describe('Google Authentication & Verification (POST /api/auth/google)', () => {
     expect(response.body.success).toBe(true);
     expect(response.body.data.user.role).toBe('student');
     expect(response.body.data.user.email).toBe('sonikaacharya2706@gmail.com');
+  });
+
+  it('rejects Google account with Invalid email when email is not in the database', async () => {
+    vi.spyOn(global, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        email: 'unregistered@gmail.com',
+        email_verified: true,
+        name: 'Unknown User',
+      }),
+    });
+
+    vi.spyOn(User, 'findOne').mockResolvedValue(null);
+    const createSpy = vi.spyOn(User, 'create');
+
+    const response = await request(app)
+      .post('/api/auth/google')
+      .send({ credential: 'valid_mock_google_jwt_unknown' });
+
+    expect(response.status).toBe(401);
+    expect(response.body.success).toBe(false);
+    expect(response.body.message).toBe('Invalid email');
+    expect(createSpy).not.toHaveBeenCalled();
   });
 
   it('rejects unverified Google emails when email_verified is false', async () => {

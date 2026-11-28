@@ -160,7 +160,8 @@ export const login = async (req, res, next) => {
 // @route   GET /api/auth/google-config
 // @access  Public
 export const getGoogleConfig = (req, res) => {
-  const clientId = process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID || '';
+  const rawClientId = (process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID || '').trim();
+  const clientId = rawClientId.endsWith('.apps.googleusercontent.com') ? rawClientId : '';
   res.json({
     success: true,
     data: { clientId },
@@ -290,40 +291,29 @@ export const googleAuth = async (req, res, next) => {
 
     name = name || email.split('@')[0];
 
-    // Only after Google token verification succeeds: Look up or create the user
-    let user = await User.findOne({ email });
+    // Only after Google token verification succeeds: Look up the user in the database
+    const user = await User.findOne({ email });
 
     if (!user) {
-      // Determine role: Canara faculty gets 'faculty', others get 'student'
-      const isFaculty =
-        WHITELISTED_FACULTY_EMAILS.includes(email) || email.endsWith('@canaraengineering.in');
-      const assignedRole = isFaculty ? 'faculty' : 'student';
-
-      user = await User.create({
-        name,
-        email,
-        password: crypto.randomBytes(32).toString('hex'), // Secure random password
-        role: assignedRole,
-        department: 'ISE',
-        year: assignedRole === 'student' ? 3 : null,
-        avatar,
-        isActive: true,
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid email',
       });
-
-      await logAudit(req, 'GOOGLE_REGISTER', 'User', user._id, { email: user.email, role: user.role });
-    } else {
-      if (!user.isActive) {
-        return res.status(403).json({
-          success: false,
-          message: 'Account deactivated. Please contact an administrator.',
-        });
-      }
-      if (avatar && !user.avatar) {
-        user.avatar = avatar;
-        await user.save();
-      }
-      await logAudit(req, 'GOOGLE_LOGIN', 'User', user._id, { email: user.email });
     }
+
+    if (!user.isActive) {
+      return res.status(403).json({
+        success: false,
+        message: 'Account deactivated. Please contact an administrator.',
+      });
+    }
+
+    if (avatar && !user.avatar) {
+      user.avatar = avatar;
+      await user.save();
+    }
+
+    await logAudit(req, 'GOOGLE_LOGIN', 'User', user._id, { email: user.email });
 
     const token = generateToken(user._id, user.role);
 

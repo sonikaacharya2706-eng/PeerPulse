@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '../../store/authStore';
@@ -9,6 +9,47 @@ const Login = () => {
   const { loginWithGoogle } = useAuthStore();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
+  const [googleReady, setGoogleReady] = useState(Boolean(window.google?.accounts?.oauth2));
+  const [googleLoadFailed, setGoogleLoadFailed] = useState(false);
+
+  useEffect(() => {
+    if (window.google?.accounts?.oauth2) {
+      setGoogleReady(true);
+      return undefined;
+    }
+
+    let script = document.querySelector('script[src="https://accounts.google.com/gsi/client"]');
+    if (!script) {
+      script = document.createElement('script');
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      document.head.appendChild(script);
+    }
+
+    let pollId;
+    const timeoutId = window.setTimeout(() => {
+      window.clearInterval(pollId);
+      setGoogleLoadFailed(true);
+    }, 10000);
+
+    const checkReady = () => {
+      if (window.google?.accounts?.oauth2) {
+        window.clearInterval(pollId);
+        window.clearTimeout(timeoutId);
+        setGoogleReady(true);
+        setGoogleLoadFailed(false);
+      }
+    };
+
+    pollId = window.setInterval(checkReady, 100);
+    checkReady();
+
+    return () => {
+      window.clearInterval(pollId);
+      window.clearTimeout(timeoutId);
+    };
+  }, []);
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -22,7 +63,11 @@ const Login = () => {
     }
 
     if (!googleIdentity) {
-      toast.error('Google sign-in is still loading. Please try again.');
+      toast.error(
+        googleLoadFailed
+          ? 'Google sign-in could not load. Refresh the page and try again.'
+          : 'Google sign-in is still loading. Please try again.'
+      );
       return;
     }
 
@@ -99,7 +144,11 @@ const Login = () => {
           />
         </div>
 
-        <Button type="submit" loading={loading} className="w-full py-2.5">
+        <Button
+          type="submit"
+          loading={loading || (!googleReady && !googleLoadFailed)}
+          className="w-full py-2.5"
+        >
           Continue
         </Button>
       </form>

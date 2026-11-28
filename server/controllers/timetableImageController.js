@@ -1,6 +1,6 @@
 import TimetableImage from '../models/TimetableImage.js';
 import User from '../models/User.js';
-import { saveFileToDB } from '../middleware/upload.js';
+import { saveFileToDB, generateSignedFileUrl } from '../middleware/upload.js';
 import { logAudit } from '../middleware/audit.js';
 import { notify } from '../services/notificationService.js';
 
@@ -96,9 +96,20 @@ export const getTimetableImages = async (req, res, next) => {
       .sort({ createdAt: -1 })
       .populate('uploadedBy', 'name email department');
 
+    const signedImages = images.map((img) => {
+      const obj = img.toObject();
+      if (obj.imageUrl && obj.imageUrl.startsWith('/api/files/')) {
+        const fileId = obj.imageUrl.split('/api/files/')[1].split('?')[0];
+        if (fileId) {
+          obj.imageUrl = generateSignedFileUrl(fileId);
+        }
+      }
+      return obj;
+    });
+
     res.json({
       success: true,
-      data: images,
+      data: signedImages,
     });
   } catch (error) {
     next(error);

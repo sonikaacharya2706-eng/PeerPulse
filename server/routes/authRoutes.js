@@ -4,6 +4,7 @@ import {
   register,
   login,
   googleAuth,
+  getGoogleConfig,
   getMe,
   updateProfile,
   changePassword,
@@ -14,6 +15,8 @@ import { protect } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 
 const router = express.Router();
+
+router.get('/google-config', getGoogleConfig);
 
 router.post(
   '/google',

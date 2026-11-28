@@ -156,6 +156,17 @@ export const login = async (req, res, next) => {
   }
 };
 
+// @desc    Get public Google OAuth Client ID configuration
+// @route   GET /api/auth/google-config
+// @access  Public
+export const getGoogleConfig = (req, res) => {
+  const clientId = process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID || '';
+  res.json({
+    success: true,
+    data: { clientId },
+  });
+};
+
 // @desc    Google Sign-in / Sign-up verification (validates with Google OAuth)
 // @route   POST /api/auth/google
 // @access  Public

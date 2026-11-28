@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import api from '../../api/axios';
 import { useAuthStore } from '../../store/authStore';
 import Button from '../../components/common/Button';
 
@@ -9,14 +10,26 @@ const Login = () => {
   const { loginWithGoogle } = useAuthStore();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
-  const [googleReady, setGoogleReady] = useState(Boolean(window.google?.accounts?.oauth2));
-  const [googleLoadFailed, setGoogleLoadFailed] = useState(false);
+  const [serverClientId, setServerClientId] = useState('');
 
+  // Load Google Client ID fallback from server if not set at build time
   useEffect(() => {
-    if (window.google?.accounts?.oauth2) {
-      setGoogleReady(true);
-      return undefined;
+    const envClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || localStorage.getItem('google_client_id');
+    if (!envClientId) {
+      api
+        .get('/auth/google-config')
+        .then((res) => {
+          if (res?.data?.clientId) {
+            setServerClientId(res.data.clientId);
+          }
+        })
+        .catch(() => {});
     }
+  }, []);
+
+  // Ensure Google Identity Services script is present
+  useEffect(() => {
+    if (window.google?.accounts?.oauth2) return;
 
     let script = document.querySelector('script[src="https://accounts.google.com/gsi/client"]');
     if (!script) {
@@ -26,91 +39,138 @@ const Login = () => {
       script.defer = true;
       document.head.appendChild(script);
     }
+  }, []);
 
-    let pollId;
-    const timeoutId = window.setTimeout(() => {
-      window.clearInterval(pollId);
-      setGoogleLoadFailed(true);
-    }, 10000);
+  // Handle OAuth 2.0 redirect callback (#access_token=...) if popup was bypassed or blocked
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (!hash || !hash.includes('access_token=')) {
+      if (hash && hash.includes('error=')) {
+        const params = new URLSearchParams(hash.substring(1));
+        const err = params.get('error_description') || params.get('error');
+        toast.error(err || 'Google sign-in was cancelled.');
+        window.history.replaceState(null, '', window.location.pathname);
+      }
+      return;
+    }
 
-    const checkReady = () => {
-      if (window.google?.accounts?.oauth2) {
-        window.clearInterval(pollId);
-        window.clearTimeout(timeoutId);
-        setGoogleReady(true);
-        setGoogleLoadFailed(false);
+    const params = new URLSearchParams(hash.substring(1));
+    const accessToken = params.get('access_token');
+    const expectedEmail = sessionStorage.getItem('pending_google_email') || undefined;
+    sessionStorage.removeItem('pending_google_email');
+
+    // Clean URL hash immediately
+    window.history.replaceState(null, '', window.location.pathname);
+
+    if (!accessToken) return;
+
+    const completeRedirectLogin = async () => {
+      setLoading(true);
+      try {
+        const result = await loginWithGoogle({
+          accessToken,
+          ...(expectedEmail ? { expectedEmail } : {}),
+        });
+
+        if (!result.success) {
+          toast.error(result.message || 'Google sign-in failed.');
+          return;
+        }
+
+        toast.success(`Welcome, ${result.user.name}!`);
+        navigate('/dashboard');
+      } catch (error) {
+        toast.error(error.message || 'Google sign-in failed.');
+      } finally {
+        setLoading(false);
       }
     };
 
-    pollId = window.setInterval(checkReady, 100);
-    checkReady();
+    completeRedirectLogin();
+  }, [loginWithGoogle, navigate]);
 
-    return () => {
-      window.clearInterval(pollId);
-      window.clearTimeout(timeoutId);
-    };
-  }, []);
-
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     const enteredEmail = email.trim().toLowerCase();
-    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || localStorage.getItem('google_client_id');
-    const googleIdentity = window.google?.accounts?.oauth2;
+    if (!enteredEmail) return;
+
+    let clientId =
+      import.meta.env.VITE_GOOGLE_CLIENT_ID ||
+      localStorage.getItem('google_client_id') ||
+      serverClientId;
 
     if (!clientId) {
-      toast.error('Sign-in is currently unavailable. Please contact your administrator.');
+      try {
+        const res = await api.get('/auth/google-config');
+        clientId = res?.data?.clientId || '';
+      } catch {
+        clientId = '';
+      }
+    }
+
+    if (!clientId) {
+      toast.error('Google Sign-In is not configured. Please set VITE_GOOGLE_CLIENT_ID or GOOGLE_CLIENT_ID.');
       return;
     }
 
-    if (!googleIdentity) {
-      toast.error(
-        googleLoadFailed
-          ? 'Google sign-in could not load. Refresh the page and try again.'
-          : 'Google sign-in is still loading. Please try again.'
-      );
-      return;
-    }
+    const googleIdentity = window.google?.accounts?.oauth2;
 
-    setLoading(true);
-    try {
-      const tokenClient = googleIdentity.initTokenClient({
-        client_id: clientId,
-        scope: 'email profile openid',
-        callback: async (tokenResponse) => {
-          if (tokenResponse.error || !tokenResponse.access_token) {
-            setLoading(false);
-            toast.error(
-              tokenResponse.error_description || tokenResponse.error || 'Google sign-in was not completed.'
-            );
-            return;
-          }
-
-          try {
-            const result = await loginWithGoogle({
-              accessToken: tokenResponse.access_token,
-              expectedEmail: enteredEmail,
-            });
-
-            if (!result.success) {
-              toast.error(result.message || 'Google sign-in failed.');
+    // If GIS popup client is loaded, open the Google OAuth popup directly
+    if (googleIdentity) {
+      setLoading(true);
+      try {
+        const tokenClient = googleIdentity.initTokenClient({
+          client_id: clientId,
+          scope: 'email profile openid',
+          callback: async (tokenResponse) => {
+            if (tokenResponse.error || !tokenResponse.access_token) {
+              setLoading(false);
+              toast.error(
+                tokenResponse.error_description || tokenResponse.error || 'Google sign-in was not completed.'
+              );
               return;
             }
 
-            toast.success(`Welcome, ${result.user.name}!`);
-            navigate('/dashboard');
-          } catch (error) {
-            toast.error(error.message || 'Google sign-in failed.');
-          } finally {
-            setLoading(false);
-          }
-        },
-      });
+            try {
+              const result = await loginWithGoogle({
+                accessToken: tokenResponse.access_token,
+                expectedEmail: enteredEmail,
+              });
 
-      tokenClient.requestAccessToken({ prompt: 'select_account', hint: enteredEmail });
-    } catch (error) {
-      setLoading(false);
-      toast.error(error.message || 'Unable to open Google sign-in.');
+              if (!result.success) {
+                toast.error(result.message || 'Google sign-in failed.');
+                return;
+              }
+
+              toast.success(`Welcome, ${result.user.name}!`);
+              navigate('/dashboard');
+            } catch (error) {
+              toast.error(error.message || 'Google sign-in failed.');
+            } finally {
+              setLoading(false);
+            }
+          },
+        });
+
+        tokenClient.requestAccessToken({ prompt: 'select_account', hint: enteredEmail });
+        return;
+      } catch (error) {
+        // Fall through to standard OAuth 2.0 redirect if popup initialization fails
+        setLoading(false);
+      }
     }
+
+    // Direct OAuth 2.0 redirect to accounts.google.com (works even if gsi/client is still loading or blocked)
+    setLoading(true);
+    sessionStorage.setItem('pending_google_email', enteredEmail);
+    const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
+    authUrl.searchParams.set('client_id', clientId);
+    authUrl.searchParams.set('redirect_uri', `${window.location.origin}/login`);
+    authUrl.searchParams.set('response_type', 'token');
+    authUrl.searchParams.set('scope', 'openid email profile');
+    authUrl.searchParams.set('login_hint', enteredEmail);
+    authUrl.searchParams.set('prompt', 'select_account');
+    window.location.href = authUrl.toString();
   };
 
   return (
@@ -146,7 +206,7 @@ const Login = () => {
 
         <Button
           type="submit"
-          loading={loading || (!googleReady && !googleLoadFailed)}
+          loading={loading}
           className="w-full py-2.5"
         >
           Continue

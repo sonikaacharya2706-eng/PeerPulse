@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Lock, Sparkles, KeyRound } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import Button from '../../components/common/Button';
 import GoogleAuthModal, { WHITELISTED_ACCOUNTS } from '../../components/auth/GoogleAuthModal';
-import SetPasswordModal from '../../components/auth/SetPasswordModal';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -18,7 +16,6 @@ const Login = () => {
 
   // Modals
   const [showGoogleModal, setShowGoogleModal] = useState(false);
-  const [showSetPasswordModal, setShowSetPasswordModal] = useState(false);
 
   useEffect(() => {
     // If VITE_GOOGLE_CLIENT_ID exists in environment, initialize GIS button
@@ -74,7 +71,7 @@ const Login = () => {
       navigate('/dashboard');
     } else {
       toast.error(
-        result.message || 'Invalid email or password. Initial password for college accounts is Campus@123'
+        result.message || 'Invalid email or password'
       );
     }
   };
@@ -84,9 +81,9 @@ const Login = () => {
     setShowGoogleModal(true);
   };
 
-  const fillDemo = (demoEmail, demoPass = 'Campus@123') => {
+  const fillDemo = (demoEmail) => {
     setEmail(demoEmail);
-    setPassword(demoPass);
+    setPassword('');
   };
 
   const studentAccounts = WHITELISTED_ACCOUNTS.filter((acc) => acc.type === 'student');
@@ -162,15 +159,6 @@ const Login = () => {
               Password
             </label>
             <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setShowSetPasswordModal(true)}
-                className="text-xs text-brand-600 dark:text-brand-400 font-semibold hover:underline flex items-center gap-1"
-                title="Match campus password to your Google password"
-              >
-                <KeyRound className="h-3 w-3" /> Set / Match Password
-              </button>
-              <span className="text-slate-300 dark:text-slate-600">|</span>
               <Link
                 to="/forgot-password"
                 className="text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:underline"
@@ -187,9 +175,6 @@ const Login = () => {
             placeholder="••••••••"
             className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
-          <p className="text-[11px] text-slate-400 mt-1">
-            Default seeded password is <strong className="text-slate-600 dark:text-slate-300">Campus@123</strong>.
-          </p>
         </div>
 
         <Button type="submit" loading={loading} className="w-full py-2.5">
@@ -200,7 +185,10 @@ const Login = () => {
       {/* Quick Credentials for Faculty & Students */}
       <div className="mt-6 pt-5 border-t border-slate-200 dark:border-slate-800 space-y-3">
         <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider text-center">
-          Quick Demo Accounts (Password: Campus@123)
+          Demo account email shortcuts
+        </p>
+        <p className="text-center text-[11px] text-slate-400">
+          Enter the password configured when the demo accounts were seeded.
         </p>
 
         {/* Canara Faculty Accounts */}
@@ -310,12 +298,6 @@ const Login = () => {
         onClose={() => setShowGoogleModal(false)}
       />
 
-      {/* Personal Password Matching Modal */}
-      <SetPasswordModal
-        isOpen={showSetPasswordModal}
-        onClose={() => setShowSetPasswordModal(false)}
-        initialEmail={email || selectedStudentEmail}
-      />
     </div>
   );
 };

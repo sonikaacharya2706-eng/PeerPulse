@@ -164,7 +164,7 @@ Verify your production deployment against these key health checkpoints:
 
 2. **Web Application & SPA Routing**:
    - Visit `https://<your-app-name>.onrender.com/` $\rightarrow$ Landing page renders cleanly.
-   - Navigate to `/login` $\rightarrow$ Use the quick-fill buttons or log in as `admin@campus.edu` with password `Campus@123`.
+   - Navigate to `/login` $\rightarrow$ Use the quick-fill buttons and enter the password configured when the demo accounts were seeded.
    - Refresh the page while on `/dashboard` or `/m1/rooms/status` $\rightarrow$ Express SPA fallback serves `index.html` without 404 errors.
 
 3. **WebSocket Real-Time Sync**:

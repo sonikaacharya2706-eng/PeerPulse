@@ -219,7 +219,7 @@ const LandingPage = () => {
                     </div>
                   </dl>
                   <p className="text-xs font-mono font-semibold text-brand-700 dark:text-brand-300 mt-3">
-                    Password for all: Campus@123
+                    Use the password configured for your account.
                   </p>
                 </div>
 

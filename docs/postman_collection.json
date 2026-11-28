@@ -17,6 +17,11 @@
       "type": "string"
     },
     {
+      "key": "seedDefaultPassword",
+      "value": "",
+      "type": "string"
+    },
+    {
       "key": "sessionId",
       "value": "",
       "type": "string"
@@ -81,7 +86,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"admin@campus.edu\",\n  \"password\": \"Campus@123\"\n}"
+              "raw": "{\n  \"email\": \"admin@campus.edu\",\n  \"password\": \"{{seedDefaultPassword}}\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/auth/login",
@@ -114,7 +119,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"faculty1@campus.edu\",\n  \"password\": \"Campus@123\"\n}"
+              "raw": "{\n  \"email\": \"faculty1@campus.edu\",\n  \"password\": \"{{seedDefaultPassword}}\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/auth/login",
@@ -147,7 +152,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"student1@campus.edu\",\n  \"password\": \"Campus@123\"\n}"
+              "raw": "{\n  \"email\": \"student1@campus.edu\",\n  \"password\": \"{{seedDefaultPassword}}\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/auth/login",
@@ -166,7 +171,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"New Student\",\n  \"email\": \"newstudent@campus.edu\",\n  \"password\": \"Campus@123\",\n  \"role\": \"student\",\n  \"department\": \"ISE\",\n  \"year\": 1,\n  \"rollNo\": \"24CS999\",\n  \"phone\": \"+91 9999988888\"\n}"
+              "raw": "{\n  \"name\": \"New Student\",\n  \"email\": \"newstudent@campus.edu\",\n  \"password\": \"{{seedDefaultPassword}}\",\n  \"role\": \"student\",\n  \"department\": \"ISE\",\n  \"year\": 1,\n  \"rollNo\": \"24CS999\",\n  \"phone\": \"+91 9999988888\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/auth/register",

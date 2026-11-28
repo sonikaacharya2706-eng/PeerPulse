@@ -162,67 +162,38 @@ const GoogleAuthModal = ({ isOpen, onClose }) => {
       acc.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleSelectAccount = async (account) => {
-    try {
-      setLoadingEmail(account.email);
-      const res = await loginWithGoogle({
-        email: account.email,
-        profile: {
-          email: account.email,
-          name: account.name,
-          picture: account.avatar,
-        },
-      });
-
-      if (res.success) {
-        toast.success(`Google verified! Welcome ${res.user.name}`);
-        onClose();
-        navigate('/dashboard');
-      } else {
-        toast.error(res.message || 'Google authentication failed');
-      }
-    } catch (err) {
-      toast.error('Authentication error: ' + (err.message || 'Network error'));
-    } finally {
-      setLoadingEmail(null);
+  const handleSelectAccount = (account) => {
+    const clientId = googleClientId.trim();
+    if (!clientId) {
+      setActiveTab('oauth');
+      toast(
+        'Google authentication requires a Google OAuth 2.0 Client ID. Please configure it below, or sign in using your account password.',
+        { icon: 'ℹ️', duration: 6000 }
+      );
+      return;
     }
+    handleLaunchGoogleOAuthPopup(account.email);
   };
 
-  const handleCustomGoogleSubmit = async (e) => {
+  const handleCustomGoogleSubmit = (e) => {
     e.preventDefault();
     if (!customEmail) {
       toast.error('Please enter your Google email');
       return;
     }
-    const email = customEmail.trim().toLowerCase();
-    const name = customName.trim() || email.split('@')[0];
-
-    try {
-      setLoadingEmail(email);
-      const res = await loginWithGoogle({
-        email,
-        profile: {
-          email,
-          name,
-          picture: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}`,
-        },
-      });
-
-      if (res.success) {
-        toast.success(`Google verified! Welcome ${res.user.name}`);
-        onClose();
-        navigate('/dashboard');
-      } else {
-        toast.error(res.message || 'Google authentication failed');
-      }
-    } catch (err) {
-      toast.error('Authentication error: ' + (err.message || 'Network error'));
-    } finally {
-      setLoadingEmail(null);
+    const clientId = googleClientId.trim();
+    if (!clientId) {
+      setActiveTab('oauth');
+      toast(
+        'Google authentication requires a Google OAuth 2.0 Client ID. Please configure it below, or sign in using your account password.',
+        { icon: 'ℹ️', duration: 6000 }
+      );
+      return;
     }
+    handleLaunchGoogleOAuthPopup(customEmail.trim().toLowerCase());
   };
 
-  const handleLaunchGoogleOAuthPopup = () => {
+  const handleLaunchGoogleOAuthPopup = (hintEmail = null) => {
     const clientId = googleClientId.trim();
     if (!clientId) {
       toast.error('Please enter a Google OAuth 2.0 Client ID from Google Cloud Console');
@@ -250,18 +221,8 @@ const GoogleAuthModal = ({ isOpen, onClose }) => {
 
           setLoadingEmail('oauth_popup');
           try {
-            const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-              headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
-            });
-
-            if (!userInfoRes.ok) {
-              throw new Error('Failed to fetch user profile from Google');
-            }
-
-            const profile = await userInfoRes.json();
             const res = await loginWithGoogle({
               accessToken: tokenResponse.access_token,
-              profile,
             });
 
             if (res.success) {
@@ -279,7 +240,11 @@ const GoogleAuthModal = ({ isOpen, onClose }) => {
         },
       });
 
-      tokenClient.requestAccessToken({ prompt: 'select_account' });
+      const options = hintEmail
+        ? { prompt: 'select_account', hint: hintEmail }
+        : { prompt: 'select_account' };
+
+      tokenClient.requestAccessToken(options);
     } catch (err) {
       toast.error('Could not open Google popup: ' + (err.message || 'Origin mismatch'));
     }

@@ -306,6 +306,44 @@ describe('Security: Privilege Escalation Prevention on Registration (Supertest)'
     expect(response.body.data.user.role).toBe('student');
     expect(response.body.data.user.role).not.toBe('admin');
   });
+
+  it('rejects registration for an existing account without changing it', async () => {
+    const existingUser = {
+      _id: '65e012345678901234567890',
+      email: 'admin@campus.edu',
+      name: 'System Administrator',
+      password: 'existing-hash',
+      role: 'admin',
+      matchPassword: vi.fn(),
+      save: vi.fn(),
+    };
+    vi.spyOn(User, 'findOne').mockResolvedValue(existingUser);
+
+    const response = await request(app)
+      .post('/api/auth/register')
+      .send({
+        name: 'Attacker',
+        email: 'admin@campus.edu',
+        password: 'AttackerPassword123!',
+        department: 'ISE',
+      });
+
+    expect(response.status).toBe(409);
+    expect(response.body.success).toBe(false);
+    expect(response.body.data).toBeUndefined();
+    expect(existingUser.matchPassword).not.toHaveBeenCalled();
+    expect(existingUser.save).not.toHaveBeenCalled();
+    expect(existingUser.password).toBe('existing-hash');
+    expect(existingUser.name).toBe('System Administrator');
+  });
+
+  it('does not expose the anonymous set-password endpoint', async () => {
+    const response = await request(app)
+      .post('/api/auth/set-password')
+      .send({ email: 'admin@campus.edu', password: 'AttackerPassword123!' });
+
+    expect(response.status).toBe(404);
+  });
 });
 
 describe('Google Authentication & Verification (POST /api/auth/google)', () => {
@@ -322,11 +360,22 @@ describe('Google Authentication & Verification (POST /api/auth/google)', () => {
     expect(response.body.success).toBe(false);
   });
 
+  it('rejects client-supplied email or profile without a valid Google token (privilege escalation prevention)', async () => {
+    // Attempting to spoof an admin or faculty account by sending body fields without token
+    const response = await request(app)
+      .post('/api/auth/google')
+      .send({ email: 'admin@campus.edu', profile: { email: 'admin@campus.edu', role: 'admin' } });
+
+    expect(response.status).toBe(400);
+    expect(response.body.success).toBe(false);
+  });
+
   it('provisions Canara Faculty account when verified with Google', async () => {
     vi.spyOn(global, 'fetch').mockResolvedValue({
       ok: true,
       json: async () => ({
         email: 'sandeepkini@canaraengineering.in',
+        email_verified: 'true',
         name: 'Dr. Sandeep Kini',
         picture: 'https://example.com/avatar.jpg',
       }),
@@ -353,6 +402,7 @@ describe('Google Authentication & Verification (POST /api/auth/google)', () => {
       ok: true,
       json: async () => ({
         email: 'sonikaacharya2706@gmail.com',
+        email_verified: true,
         name: 'Sonika Acharya',
         picture: 'https://example.com/sonika.jpg',
       }),
@@ -374,6 +424,54 @@ describe('Google Authentication & Verification (POST /api/auth/google)', () => {
     expect(response.body.data.user.email).toBe('sonikaacharya2706@gmail.com');
   });
 
+  it('rejects unverified Google emails when email_verified is false', async () => {
+    vi.spyOn(global, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        email: 'attacker@example.com',
+        email_verified: false,
+        name: 'Attacker',
+      }),
+    });
+
+    const response = await request(app)
+      .post('/api/auth/google')
+      .send({ credential: 'token_with_unverified_email' });
+
+    expect(response.status).toBe(401);
+    expect(response.body.success).toBe(false);
+    expect(response.body.message).toContain('email address is not verified');
+  });
+
+  it('rejects token when audience does not match configured client ID', async () => {
+    const originalClientId = process.env.GOOGLE_CLIENT_ID;
+    process.env.GOOGLE_CLIENT_ID = 'expected-smartcampus-client-id.apps.googleusercontent.com';
+
+    vi.spyOn(global, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        email: 'student@example.com',
+        email_verified: true,
+        aud: 'foreign-malicious-app-client-id.apps.googleusercontent.com',
+        name: 'Student',
+      }),
+    });
+
+    const response = await request(app)
+      .post('/api/auth/google')
+      .send({ credential: 'token_from_different_app' });
+
+    expect(response.status).toBe(401);
+    expect(response.body.success).toBe(false);
+    expect(response.body.message).toContain('token audience mismatch');
+
+    if (originalClientId) {
+      process.env.GOOGLE_CLIENT_ID = originalClientId;
+    } else {
+      delete process.env.GOOGLE_CLIENT_ID;
+    }
+  });
+
   it('rejects invalid Google credentials when Google API returns error', async () => {
     vi.spyOn(global, 'fetch').mockResolvedValue({
       ok: false,
@@ -387,6 +485,6 @@ describe('Google Authentication & Verification (POST /api/auth/google)', () => {
 
     expect(response.status).toBe(401);
     expect(response.body.success).toBe(false);
-    expect(response.body.message).toContain('Invalid Google password or credentials');
+    expect(response.body.message).toContain('Invalid or expired Google credential token');
   });
 });

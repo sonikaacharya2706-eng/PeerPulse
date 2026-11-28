@@ -88,20 +88,20 @@ The entire application runs with **zero external cloud accounts required**:
 
 ---
 
-## 🔑 Demo Credentials
+## 🔑 Demo Accounts
 
-All seeded accounts share the common password: **`Campus@123`**
+Before running `npm run seed`, set `SEED_DEFAULT_PASSWORD` in `server/.env` to a strong, deployment-specific password of at least 8 characters. Seeded accounts use that password; it is not included in the repository. Do not use demo credentials in production.
 
-| Role | Email | Password | Primary Testing Focus |
-| :--- | :--- | :--- | :--- |
-| **Admin** | `admin@campus.edu` | `Campus@123` | Full system control, user CRUD, audit logs, room booking approval, match confirmation, complaint reassignment & analytics |
-| **Faculty** | `faculty1@campus.edu` | `Campus@123` | Teaching schedule, room booking requests, live attendance QR session, attendance PDF/CSV export, event creation |
-| **Faculty (Alternate)** | `faculty2@campus.edu` | `Campus@123` | Clash detection testing (scheduling conflicts in same room / time) |
-| **Student 1 (ISE, Year 3)** | `student1@campus.edu` | `Campus@123` | Free room finder, dynamic QR attendance scanner, reporting lost items, raising complaints, registering for events |
-| **Student 2 (ISE, Year 2)** | `student2@campus.edu` | `Campus@123` | Low attendance (<75%) alert verification, waitlisted event registration testing |
-| **Security** | `security@campus.edu` | `Campus@123` | Visitor pass generation, QR gate check-in / check-out scanner, on-campus active visitor monitoring, gate found-item registration |
-| **Maintenance** | `maintenance@campus.edu` | `Campus@123` | Assigned demo work order, task board, advancing ticket status (`assigned` $\rightarrow$ `in_progress` $\rightarrow$ `resolved`), uploading completion remarks |
-| **Maintenance 1** | `maintenance1@campus.edu` | `Campus@123` | Assigned electrical maintenance technician workflow |
+| Role | Email | Primary Testing Focus |
+| :--- | :--- | :--- |
+| **Admin** | `admin@campus.edu` | Full system control, user CRUD, audit logs, room booking approval, match confirmation, complaint reassignment & analytics |
+| **Faculty** | `faculty1@campus.edu` | Teaching schedule, room booking requests, live attendance QR session, attendance PDF/CSV export, event creation |
+| **Faculty (Alternate)** | `faculty2@campus.edu` | Clash detection testing (scheduling conflicts in same room / time) |
+| **Student 1 (ISE, Year 3)** | `student1@campus.edu` | Free room finder, dynamic QR attendance scanner, reporting lost items, raising complaints, registering for events |
+| **Student 2 (ISE, Year 2)** | `student2@campus.edu` | Low attendance (<75%) alert verification, waitlisted event registration testing |
+| **Security** | `security@campus.edu` | Visitor pass generation, QR gate check-in / check-out scanner, on-campus active visitor monitoring, gate found-item registration |
+| **Maintenance** | `maintenance@campus.edu` | Assigned demo work order, task board, advancing ticket status (`assigned` $\rightarrow$ `in_progress` $\rightarrow$ `resolved`), uploading completion remarks |
+| **Maintenance 1** | `maintenance1@campus.edu` | Assigned electrical maintenance technician workflow |
 
 The seeded demo data gives each role dashboard sample details: admin campus metrics, pending queues, audit logs, and ownership claims; faculty schedule, room requests, events, and attendance reports; student timetable, complaints, attendance, and event registrations; security visitor activity and found items; and maintenance assigned work orders. Attendance fixtures cover ISE Years 2 and 3, including 100%, 66%, and 33% examples. When there are no classes today, faculty and student dashboards show the next scheduled classes instead.
 

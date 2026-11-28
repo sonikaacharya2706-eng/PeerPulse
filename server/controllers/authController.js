@@ -11,44 +11,8 @@ export const register = async (req, res, next) => {
   try {
     const { name, email, password, department, year, rollNo, phone, clubs } = req.body;
 
-    const query = User.findOne({ email: email.toLowerCase().trim() });
-    const existingUser = query && typeof query.select === 'function' ? await query.select('+password') : await query;
+    const existingUser = await User.findOne({ email: email.toLowerCase().trim() });
     if (existingUser) {
-      // If the account was pre-seeded with default password, allow user to set their personal password
-      const isDefaultPass = await existingUser.matchPassword('Campus@123');
-      if (isDefaultPass) {
-        existingUser.password = password;
-        if (name) existingUser.name = name;
-        if (phone) existingUser.phone = phone;
-        if (department) existingUser.department = department;
-        if (year) existingUser.year = Number(year);
-        if (rollNo && !existingUser.rollNo) existingUser.rollNo = rollNo;
-        await existingUser.save();
-
-        const token = generateToken(existingUser._id, existingUser.role);
-        await logAudit(req, 'CLAIM_REGISTER', 'User', existingUser._id, { email: existingUser.email, role: existingUser.role });
-
-        return res.status(200).json({
-          success: true,
-          data: {
-            token,
-            user: {
-              _id: existingUser._id,
-              name: existingUser.name,
-              email: existingUser.email,
-              role: existingUser.role,
-              department: existingUser.department,
-              year: existingUser.year,
-              rollNo: existingUser.rollNo,
-              phone: existingUser.phone,
-              avatar: existingUser.avatar,
-              clubs: existingUser.clubs,
-            },
-          },
-          message: 'Account verified! Your personal password has been saved.',
-        });
-      }
-
       return res.status(409).json({
         success: false,
         message: 'A user with this email already exists',
@@ -197,65 +161,118 @@ export const login = async (req, res, next) => {
 // @access  Public
 export const googleAuth = async (req, res, next) => {
   try {
-    const { credential, accessToken, profile, email: manualEmail } = req.body;
+    const { credential, accessToken } = req.body;
+
+    // Strict validation: Require real Google token. Never trust unverified client profile or email fields.
+    if (!credential && !accessToken) {
+      return res.status(400).json({
+        success: false,
+        message: 'Google credential token or access token is required',
+      });
+    }
 
     let email = null;
     let name = null;
     let avatar = '';
 
-    if (credential && !accessToken) {
+    const expectedAudience = process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID;
+
+    if (credential) {
       // 1. Verify Google ID token via Google tokeninfo API
-      try {
-        const response = await fetch(
-          `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`
-        );
-        if (response.ok) {
-          const payload = await response.json();
-          email = payload.email?.toLowerCase().trim();
-          name = payload.name;
-          avatar = payload.picture || '';
-        }
-      } catch (fetchErr) {
-        // continue to next check
-      }
-    }
+      const response = await fetch(
+        `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`
+      );
 
-    if (!email && accessToken) {
-      // 2. Verify with Google's userinfo API using OAuth2 access token
-      try {
-        const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-          headers: { Authorization: `Bearer ${accessToken}` },
+      if (!response.ok) {
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid or expired Google credential token',
         });
-        if (response.ok) {
-          const payload = await response.json();
-          email = payload.email?.toLowerCase().trim();
-          name = payload.name;
-          avatar = payload.picture || '';
-        }
-      } catch (fetchErr) {
-        // continue to next check
       }
-    }
 
-    // 3. Fallback for profile data if already authenticated by frontend
-    if (!email && profile?.email) {
-      email = profile.email.toLowerCase().trim();
-      name = profile.name;
-      avatar = profile.picture || '';
-    } else if (!email && manualEmail) {
-      email = manualEmail.toLowerCase().trim();
+      const payload = await response.json();
+
+      // Check email_verified: Must be verified by Google
+      const isVerified = payload.email_verified === true || payload.email_verified === 'true';
+      if (!isVerified) {
+        return res.status(401).json({
+          success: false,
+          message: 'Google email address is not verified',
+        });
+      }
+
+      // Check audience: Ensure token was issued for this application
+      if (expectedAudience && payload.aud && payload.aud !== expectedAudience) {
+        return res.status(401).json({
+          success: false,
+          message: 'Google token audience mismatch',
+        });
+      }
+
+      email = payload.email?.toLowerCase().trim();
+      name = payload.name;
+      avatar = payload.picture || '';
+    } else if (accessToken) {
+      // 2. Verify with Google's tokeninfo & userinfo API using OAuth2 access token
+      const tokenInfoRes = await fetch(
+        `https://oauth2.googleapis.com/tokeninfo?access_token=${encodeURIComponent(accessToken)}`
+      );
+
+      if (!tokenInfoRes.ok) {
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid or expired Google access token',
+        });
+      }
+
+      const tokenInfo = await tokenInfoRes.json();
+
+      // Check audience / client_id on access token if configured
+      if (expectedAudience && tokenInfo.aud && tokenInfo.aud !== expectedAudience) {
+        return res.status(401).json({
+          success: false,
+          message: 'Google token audience mismatch',
+        });
+      }
+
+      // Fetch verified user profile
+      const userinfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+
+      if (!userinfoRes.ok) {
+        return res.status(401).json({
+          success: false,
+          message: 'Failed to retrieve verified Google profile',
+        });
+      }
+
+      const profilePayload = await userinfoRes.json();
+
+      const isVerified =
+        profilePayload.email_verified === true || profilePayload.email_verified === 'true';
+      if (!isVerified) {
+        return res.status(401).json({
+          success: false,
+          message: 'Google email address is not verified',
+        });
+      }
+
+      email = profilePayload.email?.toLowerCase().trim();
+      name = profilePayload.name;
+      avatar = profilePayload.picture || '';
     }
 
     if (!email) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid Google password or credentials. Google authentication failed.',
+        message: 'Google authentication failed: No verified email in Google token',
       });
     }
 
     name = name || email.split('@')[0];
 
-    // Check if user already exists
+    // Only after Google token verification succeeds: Look up or create the user
     let user = await User.findOne({ email });
 
     if (!user) {
@@ -493,68 +510,6 @@ export const resetPassword = async (req, res, next) => {
     res.json({
       success: true,
       message: 'Password has been reset successfully. You can now login.',
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-// @desc    Set or sync personal password for any campus/whitelisted account
-// @route   POST /api/auth/set-password
-// @access  Public
-export const setPersonalPassword = async (req, res, next) => {
-  try {
-    const { email, password } = req.body;
-    if (!email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please provide email and password',
-      });
-    }
-
-    if (password.length < 8) {
-      return res.status(400).json({
-        success: false,
-        message: 'Password must be at least 8 characters long',
-      });
-    }
-
-    const cleanEmail = email.toLowerCase().trim();
-    const query = User.findOne({ email: cleanEmail });
-    const user = query && typeof query.select === 'function' ? await query.select('+password') : await query;
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'No account found with this email. Please register first.',
-      });
-    }
-
-    user.password = password;
-    await user.save();
-
-    await logAudit(req, 'SET_PERSONAL_PASSWORD', 'User', user._id, { email: user.email });
-
-    const token = generateToken(user._id, user.role);
-
-    res.json({
-      success: true,
-      data: {
-        token,
-        user: {
-          _id: user._id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          department: user.department,
-          year: user.year,
-          rollNo: user.rollNo,
-          phone: user.phone,
-          avatar: user.avatar,
-          clubs: user.clubs,
-        },
-      },
-      message: 'Password updated successfully! Logged in.',
     });
   } catch (error) {
     next(error);

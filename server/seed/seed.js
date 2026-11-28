@@ -35,6 +35,11 @@ const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/smart_camp
 
 const seedDatabase = async () => {
   try {
+    const commonPassword = process.env.SEED_DEFAULT_PASSWORD;
+    if (!commonPassword || commonPassword.length < 8) {
+      throw new Error('Set SEED_DEFAULT_PASSWORD to a strong password of at least 8 characters before seeding.');
+    }
+
     console.log('[Seed] Connecting to MongoDB...');
     await mongoose.connect(MONGO_URI);
     console.log('[Seed] Connected.');
@@ -73,8 +78,7 @@ const seedDatabase = async () => {
 
     console.log('[Seed] Database wiped. Seeding new initial data...');
 
-    // 1. ACCOUNTS (Password: Campus@123)
-    const commonPassword = 'Campus@123';
+    // 1. ACCOUNTS
 
     // Admin
     const admin = await User.create({
@@ -1119,11 +1123,9 @@ const seedDatabase = async () => {
     ]);
     console.log('[Seed] Sample audit log entries seeded.');
 
-    // Print all demo credentials clearly
     console.log('\n============================================================');
     console.log('🎉 SMART CAMPUS SOLUTIONS: DATABASE SEEDING COMPLETED!');
     console.log('============================================================');
-    console.log('Password for ALL seeded accounts: Campus@123\n');
     console.log('Demo Accounts by Role:');
     console.log('  [ADMIN]       : admin@campus.edu');
     console.log('  [FACULTY 1]   : sandeepkini@canaraengineering.in (Dr. Sandeep Kini - HOD ISE)');

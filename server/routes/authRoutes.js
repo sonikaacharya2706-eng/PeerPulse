@@ -18,6 +18,7 @@ const router = express.Router();
 router.post(
   '/google',
   [
+    body('expectedEmail').optional().isEmail().withMessage('Please provide a valid email'),
     body().custom((value) => {
       if (!value.credential && !value.accessToken) {
         throw new Error('Google credential token or access token is required');

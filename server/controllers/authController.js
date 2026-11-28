@@ -161,7 +161,7 @@ export const login = async (req, res, next) => {
 // @access  Public
 export const googleAuth = async (req, res, next) => {
   try {
-    const { credential, accessToken } = req.body;
+    const { credential, accessToken, expectedEmail } = req.body;
 
     // Strict validation: Require real Google token. Never trust unverified client profile or email fields.
     if (!credential && !accessToken) {
@@ -267,6 +267,13 @@ export const googleAuth = async (req, res, next) => {
       return res.status(401).json({
         success: false,
         message: 'Google authentication failed: No verified email in Google token',
+      });
+    }
+
+    if (expectedEmail && email !== expectedEmail.toLowerCase().trim()) {
+      return res.status(401).json({
+        success: false,
+        message: 'The Google account does not match the entered email address.',
       });
     }
 

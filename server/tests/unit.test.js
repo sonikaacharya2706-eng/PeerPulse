@@ -360,6 +360,30 @@ describe('Google Authentication & Verification (POST /api/auth/google)', () => {
     expect(response.body.success).toBe(false);
   });
 
+  it('rejects a Google account that differs from the entered email', async () => {
+    vi.spyOn(global, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        email: 'verified-user@gmail.com',
+        email_verified: true,
+        name: 'Verified User',
+      }),
+    });
+    const findOneSpy = vi.spyOn(User, 'findOne');
+
+    const response = await request(app)
+      .post('/api/auth/google')
+      .send({
+        credential: 'verified-google-token',
+        expectedEmail: 'someone-else@gmail.com',
+      });
+
+    expect(response.status).toBe(401);
+    expect(response.body.success).toBe(false);
+    expect(response.body.message).toContain('does not match the entered email');
+    expect(findOneSpy).not.toHaveBeenCalled();
+  });
+
   it('rejects client-supplied email or profile without a valid Google token (privilege escalation prevention)', async () => {
     // Attempting to spoof an admin or faculty account by sending body fields without token
     const response = await request(app)

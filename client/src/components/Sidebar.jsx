@@ -1,5 +1,5 @@
-import React from 'react';
-import { NavLink } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
   Calendar,
@@ -23,6 +23,8 @@ import {
   Sliders,
   History,
   CheckCircle2,
+  ChevronDown,
+  ChevronRight,
   X,
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
@@ -30,6 +32,8 @@ import { useAuthStore } from '../store/authStore';
 const Sidebar = ({ isOpen, onClose }) => {
   const user = useAuthStore((state) => state.user);
   const role = user?.role || 'student';
+  const location = useLocation();
+  const [openModules, setOpenModules] = useState({});
 
   // Navigation schema configured by role
   const navSections = [
@@ -238,6 +242,27 @@ const Sidebar = ({ isOpen, onClose }) => {
     },
   ];
 
+  // Auto-expand the module dropdown if the current route belongs to it
+  useEffect(() => {
+    navSections.forEach((section) => {
+      if (/^M[1-5]\./.test(section.title)) {
+        const hasActiveChild = section.items.some(
+          (item) => item.roles.includes(role) && location.pathname.startsWith(item.path)
+        );
+        if (hasActiveChild) {
+          setOpenModules((prev) => ({ ...prev, [section.title]: true }));
+        }
+      }
+    });
+  }, [location.pathname, role]);
+
+  const toggleModule = (title) => {
+    setOpenModules((prev) => ({
+      ...prev,
+      [title]: !prev[title],
+    }));
+  };
+
   return (
     <>
       {/* Mobile Drawer Backdrop */}
@@ -278,35 +303,59 @@ const Sidebar = ({ isOpen, onClose }) => {
         </div>
 
         {/* Navigation list */}
-        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-6">
+        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
           {navSections.map((section, idx) => {
             const filteredItems = section.items.filter((item) =>
               item.roles.includes(role)
             );
             if (filteredItems.length === 0) return null;
 
+            const isModuleDropdown = /^M[1-5]\./.test(section.title);
+            const isExpanded = !isModuleDropdown || Boolean(openModules[section.title]);
+
             return (
               <div key={idx} className="space-y-1">
-                <h3 className="px-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
-                  {section.title}
-                </h3>
-                {filteredItems.map((item) => (
-                  <NavLink
-                    key={item.path}
-                    to={item.path}
-                    onClick={() => onClose && onClose()}
-                    className={({ isActive }) =>
-                      `flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
-                        isActive
-                          ? 'bg-brand-600 text-white shadow-sm'
-                          : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
-                      }`
-                    }
+                {isModuleDropdown ? (
+                  <button
+                    type="button"
+                    onClick={() => toggleModule(section.title)}
+                    aria-expanded={isExpanded}
+                    className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-left text-[11px] font-semibold text-slate-300 uppercase tracking-wider hover:bg-slate-800/80 hover:text-white transition"
                   >
-                    <item.icon className="h-4 w-4 shrink-0" />
-                    <span className="truncate">{item.name}</span>
-                  </NavLink>
-                ))}
+                    <span className="leading-snug">{section.title}</span>
+                    {isExpanded ? (
+                      <ChevronDown className="h-4 w-4 shrink-0 text-slate-400" />
+                    ) : (
+                      <ChevronRight className="h-4 w-4 shrink-0 text-slate-400" />
+                    )}
+                  </button>
+                ) : (
+                  <h3 className="px-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                    {section.title}
+                  </h3>
+                )}
+
+                {isExpanded && (
+                  <div className={isModuleDropdown ? 'space-y-1 pl-2 pt-0.5' : 'space-y-1'}>
+                    {filteredItems.map((item) => (
+                      <NavLink
+                        key={item.path}
+                        to={item.path}
+                        onClick={() => onClose && onClose()}
+                        className={({ isActive }) =>
+                          `flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                            isActive
+                              ? 'bg-brand-600 text-white shadow-sm'
+                              : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
+                          }`
+                        }
+                      >
+                        <item.icon className="h-4 w-4 shrink-0" />
+                        <span className="truncate">{item.name}</span>
+                      </NavLink>
+                    ))}
+                  </div>
+                )}
               </div>
             );
           })}
